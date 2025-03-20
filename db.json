@@ -1,0 +1,347 @@
+{
+  "users": [
+    {
+      "id": "1742230321916",
+      "name": "Richard H.",
+      "email": "richard@gmail.com",
+      "password": "asdasdasd",
+      "role": "admin",
+      "businessId": "1742230321916",
+      "businessName": "Pied piper",
+      "isVerified": false,
+      "serviceIds": [],
+      "avatar": ""
+    },
+    {
+      "name": "Gilfoile H.",
+      "email": "gilfoile@gmail.com",
+      "serviceIds": [
+        "1742244200559",
+        "1742232528534",
+        "1742230995581",
+        "1742231297430"
+      ],
+      "businessId": "1742230321916",
+      "businessName": "Pied piper",
+      "password": "password123",
+      "id": "1742244079841",
+      "isVerified": true,
+      "avatar": "",
+      "role": "staff",
+      "_timestamp": 1742417232467,
+      "phone": ""
+    },
+    {
+      "name": "Jared D.",
+      "email": "jareg@gmail.com",
+      "serviceIds": [
+        "1742232528534",
+        "1742230995581",
+        "1742231297430",
+        "1742244200559"
+      ],
+      "businessId": "1742230321916",
+      "businessName": "Pied piper",
+      "password": "password123",
+      "id": "1742411457578",
+      "isVerified": true
+    },
+    {
+      "id": "1742419128863",
+      "name": "Дархан",
+      "email": "darkhan.ashirbay01@gmail.com",
+      "password": "asdasdasd",
+      "role": "admin",
+      "businessId": "1742419128863",
+      "businessName": "Nike",
+      "isVerified": false,
+      "avatar": "https://ui-avatars.com/api/?name=%D0%94%D0%B0%D1%80%D1%85%D0%B0%D0%BD&background=BE185D&color=fff",
+      "serviceIds": []
+    },
+    {
+      "name": "Nikita",
+      "email": "nikita@gmail.com",
+      "serviceIds": [
+        "1742419150346"
+      ],
+      "businessId": "1742419128863",
+      "businessName": "Nike",
+      "phone": "",
+      "avatar": "",
+      "password": "password123",
+      "id": "1742419177690",
+      "isVerified": true,
+      "role": "staff",
+      "_timestamp": 1742422443999
+    }
+  ],
+  "businesses": [
+    {
+      "id": "1742230321916",
+      "name": "Pied piper",
+      "ownerId": "1742230321916",
+      "email": "richard@gmail.com"
+    },
+    {
+      "id": "1742419128863",
+      "name": "Nike",
+      "ownerId": "1742419128863",
+      "email": "darkhan.ashirbay01@gmail.com"
+    }
+  ],
+  "services": [
+    {
+      "name": "Manicure",
+      "description": "Manicure",
+      "duration": 60,
+      "price": 2000,
+      "category": "Manicure",
+      "imageUrl": "/images/services/manicure.jpg",
+      "businessId": "1742230321916",
+      "id": "1742230995581",
+      "_timestamp": 1742298794688
+    },
+    {
+      "name": "Haicut",
+      "description": "Haicut lorem ipsum",
+      "duration": 60,
+      "price": 2000,
+      "category": "Manicure",
+      "imageUrl": "/images/services/haircut.jpg",
+      "businessId": "1742230321916",
+      "id": "1742231297430",
+      "_timestamp": 1742300169971
+    },
+    {
+      "name": "new service",
+      "description": "new service",
+      "duration": 60,
+      "price": 2000,
+      "category": "category",
+      "imageUrl": "/images/services/massage.jpg",
+      "businessId": "1742230321916",
+      "id": "1742232528534",
+      "_timestamp": 1742299010915
+    },
+    {
+      "name": "Massage",
+      "description": "Massage",
+      "duration": 60,
+      "price": 5000,
+      "category": "Massage",
+      "imageUrl": "/images/services/massage.jpg",
+      "businessId": "1742230321916",
+      "_timestamp": 1742298830116,
+      "id": "1742244200559"
+    },
+    {
+      "name": "Haicut",
+      "description": "Haicut",
+      "duration": 60,
+      "price": 2000,
+      "category": "Haircut",
+      "imageUrl": "/images/services/haircut.jpg",
+      "businessId": "1742419128863",
+      "id": "1742419150346"
+    }
+  ],
+  "appointments": [
+    {
+      "clientId": 1,
+      "serviceId": "1742230995581",
+      "employeeId": "1742244079841",
+      "date": "2025-03-19",
+      "startTime": "12:00",
+      "endTime": "13:00",
+      "duration": 60,
+      "status": "Pending",
+      "price": 200,
+      "businessId": "1742230321916",
+      "id": 1
+    },
+    {
+      "clientId": 1,
+      "serviceId": "1742230995581",
+      "employeeId": "1742244079841",
+      "date": "2025-03-20",
+      "startTime": "10:00",
+      "endTime": "11:00",
+      "duration": 60,
+      "status": "Arrived",
+      "price": 2000,
+      "businessId": "1742230321916",
+      "comment": "comment",
+      "id": "2"
+    },
+    {
+      "clientId": 2,
+      "serviceId": "1742244200559",
+      "employeeId": "1742411457578",
+      "date": "2025-03-20",
+      "startTime": "12:00",
+      "endTime": "13:00",
+      "duration": 60,
+      "status": "Pending",
+      "price": 5000,
+      "businessId": "1742230321916",
+      "id": "GgKUdIS"
+    },
+    {
+      "clientId": 1,
+      "serviceId": "1742232528534",
+      "employeeId": "1742244079841",
+      "date": "2025-03-20",
+      "startTime": "14:00",
+      "endTime": "15:00",
+      "duration": 60,
+      "status": "Pending",
+      "price": 2000,
+      "businessId": "1742230321916",
+      "id": "qxk8ZVJ"
+    },
+    {
+      "clientId": 3,
+      "serviceId": "1742419150346",
+      "employeeId": "1742419177690",
+      "date": "2025-03-20",
+      "startTime": "12:00",
+      "endTime": "13:00",
+      "duration": 60,
+      "status": "Pending",
+      "price": 2000,
+      "businessId": "1742419128863",
+      "id": "i-CacE2"
+    },
+    {
+      "clientId": 4,
+      "serviceId": "1742419150346",
+      "employeeId": "1742419177690",
+      "date": "2025-03-20",
+      "startTime": "12:00",
+      "endTime": "13:00",
+      "duration": 60,
+      "status": "Pending",
+      "price": 2000,
+      "businessId": "1742419128863",
+      "id": "g_xAAJO"
+    },
+    {
+      "clientId": 5,
+      "serviceId": "1742419150346",
+      "employeeId": "1742419177690",
+      "date": "2025-03-20",
+      "startTime": "13:30",
+      "endTime": "14:30",
+      "duration": 60,
+      "status": "Pending",
+      "price": 2000,
+      "businessId": "1742419128863",
+      "id": "kpiDctz"
+    },
+    {
+      "clientId": 6,
+      "serviceId": "1742419150346",
+      "employeeId": "1742419177690",
+      "date": "2025-03-20",
+      "startTime": "14:00",
+      "endTime": "15:00",
+      "duration": 60,
+      "status": "Pending",
+      "price": 2000,
+      "businessId": "1742419128863",
+      "id": "yNxW-2B"
+    }
+  ],
+  "clients": [
+    {
+      "name": "Haicut",
+      "phone": "+77474894939",
+      "email": "",
+      "notes": "",
+      "businessId": "1742230321916",
+      "totalVisits": 0,
+      "lastVisit": "2025-03-17T20:42:17.781Z",
+      "id": 1
+    },
+    {
+      "name": "Manicure",
+      "phone": "7789643981",
+      "email": "",
+      "notes": "",
+      "businessId": "1742230321916",
+      "totalVisits": 0,
+      "lastVisit": "2025-03-19T21:14:08.834Z",
+      "id": 2
+    },
+    {
+      "name": "Manicure",
+      "phone": "77789643981",
+      "email": "",
+      "notes": "",
+      "businessId": "1742419128863",
+      "totalVisits": 0,
+      "lastVisit": "2025-03-19T21:20:07.022Z",
+      "id": 3
+    },
+    {
+      "name": "Haicut",
+      "phone": "+77474894939",
+      "email": "",
+      "notes": "",
+      "businessId": "1742419128863",
+      "totalVisits": 0,
+      "lastVisit": "2025-03-19T22:14:32.830Z",
+      "id": 4
+    },
+    {
+      "name": "Manicure",
+      "phone": "77789643981",
+      "email": "",
+      "notes": "",
+      "businessId": "1742419128863",
+      "totalVisits": 0,
+      "lastVisit": "2025-03-19T22:20:24.762Z",
+      "id": 5
+    },
+    {
+      "name": "Manicure",
+      "phone": "+77474894939",
+      "email": "",
+      "notes": "",
+      "businessId": "1742419128863",
+      "totalVisits": 0,
+      "lastVisit": "2025-03-19T22:21:30.609Z",
+      "id": 6
+    }
+  ],
+  "serviceCategories": [
+    {
+      "name": "Manicure",
+      "description": "ManicureManicure",
+      "color": "#52e548",
+      "businessId": "1742230321916",
+      "id": "1742232047792"
+    },
+    {
+      "name": "Haicut",
+      "description": "Haicut",
+      "color": "#4f46e5",
+      "businessId": "1742230321916",
+      "id": "1742232448025"
+    },
+    {
+      "name": "Massage",
+      "description": "MassageMassage",
+      "color": "#4f46e5",
+      "businessId": "1742230321916",
+      "id": "1742232459207"
+    },
+    {
+      "name": "new catefory",
+      "description": "category",
+      "color": "#cbe548",
+      "businessId": "1742230321916",
+      "id": "1742233214686"
+    }
+  ]
+}

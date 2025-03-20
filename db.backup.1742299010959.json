@@ -1,0 +1,141 @@
+{
+  "users": [
+    {
+      "id": "1742230321916",
+      "name": "Richard Henricks",
+      "email": "richard@gmail.com",
+      "password": "asdasdasd",
+      "role": "admin",
+      "businessId": "1742230321916",
+      "businessName": "Pied piper",
+      "isVerified": false,
+      "serviceIds": []
+    },
+    {
+      "name": "gilfoile",
+      "email": "gilfoile@gmail.com",
+      "serviceIds": [
+        "1742231297430",
+        "1742232528534",
+        "1742230995581"
+      ],
+      "businessId": "1742230321916",
+      "businessName": "Pied piper",
+      "password": "password123",
+      "id": "1742244079841",
+      "isVerified": true
+    }
+  ],
+  "businesses": [
+    {
+      "id": "1742230321916",
+      "name": "Pied piper",
+      "ownerId": "1742230321916",
+      "email": "richard@gmail.com"
+    }
+  ],
+  "services": [
+    {
+      "name": "Manicure",
+      "description": "Manicure",
+      "duration": 60,
+      "price": 2000,
+      "category": "new category",
+      "imageUrl": "/images/services/manicure.jpg",
+      "businessId": "1742230321916",
+      "id": "1742230995581",
+      "_timestamp": 1742298794688
+    },
+    {
+      "name": "Haicut",
+      "description": "Haicut",
+      "duration": 60,
+      "price": 123,
+      "category": "Manicure",
+      "imageUrl": "/images/services/massage.jpg",
+      "businessId": "1742230321916",
+      "id": "1742231297430",
+      "_timestamp": 1742298762320
+    },
+    {
+      "name": "new service",
+      "description": "new service",
+      "duration": 60,
+      "price": 2000,
+      "category": "category",
+      "imageUrl": "/images/services/manicure.jpg",
+      "businessId": "1742230321916",
+      "id": "1742232528534",
+      "_timestamp": 1742298843392
+    },
+    {
+      "name": "Massage",
+      "description": "Massage",
+      "duration": 60,
+      "price": 5000,
+      "category": "Massage",
+      "imageUrl": "/images/services/massage.jpg",
+      "businessId": "1742230321916",
+      "_timestamp": 1742298830116,
+      "id": "1742244200559"
+    }
+  ],
+  "bookingLinks": [],
+  "appointments": [
+    {
+      "clientId": 1,
+      "serviceId": "1742230995581",
+      "employeeId": "1742244079841",
+      "date": "2025-03-19",
+      "startTime": "12:00",
+      "endTime": "13:00",
+      "duration": 60,
+      "status": "Pending",
+      "price": 200,
+      "businessId": "1742230321916",
+      "id": 1
+    }
+  ],
+  "clients": [
+    {
+      "name": "Haicut",
+      "phone": "+77474894939",
+      "email": "",
+      "notes": "",
+      "businessId": "1742230321916",
+      "totalVisits": 0,
+      "lastVisit": "2025-03-17T20:42:17.781Z",
+      "id": 1
+    }
+  ],
+  "serviceCategories": [
+    {
+      "name": "Manicure",
+      "description": "ManicureManicure",
+      "color": "#52e548",
+      "businessId": "1742230321916",
+      "id": "1742232047792"
+    },
+    {
+      "name": "Haicut",
+      "description": "Haicut",
+      "color": "#4f46e5",
+      "businessId": "1742230321916",
+      "id": "1742232448025"
+    },
+    {
+      "name": "Massage",
+      "description": "MassageMassage",
+      "color": "#4f46e5",
+      "businessId": "1742230321916",
+      "id": "1742232459207"
+    },
+    {
+      "name": "new catefory",
+      "description": "category",
+      "color": "#cbe548",
+      "businessId": "1742230321916",
+      "id": "1742233214686"
+    }
+  ]
+}
