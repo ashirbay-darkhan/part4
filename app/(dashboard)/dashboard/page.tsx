@@ -25,6 +25,7 @@ import {
 import { Appointment, Client } from '@/types';
 import { useBusinessData } from '@/lib/hooks/useBusinessData';
 import { getBusinessAppointments, getBusinessClients } from '@/lib/api';
+import { BookingLinkCard } from '@/components/booking/booking-link-card';
 import { 
   getTodayAppointments, 
   formatDate, 
@@ -356,6 +357,9 @@ export default function DashboardPage() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <RecentBookings appointments={appointments} clients={clients} />
+        <div className="mb-6">
+          <BookingLinkCard />
+        </div>
         <QuickActions />
       </div>
     </div>

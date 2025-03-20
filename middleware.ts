@@ -2,7 +2,13 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Paths that don't require authentication
-const publicPaths = ['/login', '/register', '/forgot-password', '/reset-password'];
+const publicPaths = [
+  '/login', 
+  '/register', 
+  '/forgot-password', 
+  '/reset-password',
+  '/book',
+];
 
 // Middleware function to check authentication
 export function middleware(request: NextRequest) {
