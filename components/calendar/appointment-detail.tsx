@@ -1,45 +1,38 @@
-'use client';
-
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   CalendarIcon, 
-  ClockIcon, 
-  Edit2Icon, 
-  MoreHorizontal, 
+  ClockIcon,
   PhoneIcon, 
-  History, 
   MessageSquare,
   CheckCircle,
   XCircle,
   UserIcon,
-  Repeat,
-  Bell,
-  Clipboard,
-  FileText,
-  ChevronDown,
-  ChevronRight,
-  ExternalLink,
   Save,
-  Loader2
+  Loader2,
+  Edit2Icon,
+  CreditCard,
+  ArrowRight,
+  Info
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { format, parseISO, differenceInMinutes } from 'date-fns';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger
-} from "@/components/ui/collapsible";
-import { format, parseISO, addMinutes, differenceInMinutes } from 'date-fns';
-import { Appointment, AppointmentStatus, Client, Service } from '@/types';
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { Toast } from '@/components/ui/toast';
+import { Badge } from '@/components/ui/badge';
+import { Avatar } from '@/components/ui/avatar-fallback';
+import { cn } from '@/lib/utils';
 import { 
   getClient, 
   getService, 
@@ -47,17 +40,22 @@ import {
   updateAppointmentStatus,
   deleteAppointment
 } from '@/lib/api';
-import { Avatar } from '@/components/ui/avatar-fallback';
-import { cn } from '@/lib/utils';
-import { Toast } from '@/components/ui/toast';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+
+import { Appointment, AppointmentStatus, Client, Service } from '@/types';
 
 interface AppointmentDetailProps {
   appointment: Appointment;
   onClose: () => void;
+  onStatusChange?: () => Promise<void>;
+  onUpdate?: () => Promise<void>;
 }
 
-export function AppointmentDetailView({ appointment, onClose }: AppointmentDetailProps) {
+export function ImprovedAppointmentDetail({ 
+  appointment, 
+  onClose, 
+  onStatusChange,
+  onUpdate
+}: AppointmentDetailProps) {
   // State management
   const [client, setClient] = useState<Client | null>(null);
   const [service, setService] = useState<Service | null>(null);
@@ -67,11 +65,11 @@ export function AppointmentDetailView({ appointment, onClose }: AppointmentDetai
   const [comment, setComment] = useState(appointment.comment || '');
   const [isEditing, setIsEditing] = useState(false);
   const [isCommentDirty, setIsCommentDirty] = useState(false);
-  const [isForAnotherVisitor, setIsForAnotherVisitor] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error' | 'info'} | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<'paid' | 'unpaid'>('unpaid');
   
   // Form state for editing
   const [editForm, setEditForm] = useState({
@@ -79,14 +77,6 @@ export function AppointmentDetailView({ appointment, onClose }: AppointmentDetai
     startTime: appointment.startTime,
     endTime: appointment.endTime,
     duration: calculateDuration(appointment.startTime, appointment.endTime)
-  });
-  
-  // Section expand states
-  const [expandedSections, setExpandedSections] = useState({
-    services: true,
-    clientInfo: false,
-    appointmentData: false,
-    statistics: false
   });
 
   // Calculate duration from start and end time
@@ -103,27 +93,6 @@ export function AppointmentDetailView({ appointment, onClose }: AppointmentDetai
     const durationMinutes = differenceInMinutes(end, start);
     return (durationMinutes / 60).toFixed(1);
   }
-  
-  // Update end time when start time or duration changes
-  const updateEndTime = useCallback((startTime: string, durationHours: number) => {
-    const [hours, minutes] = startTime.split(':').map(Number);
-    const date = new Date();
-    date.setHours(hours, minutes, 0);
-    
-    const endDate = addMinutes(date, durationHours * 60);
-    const endHours = endDate.getHours().toString().padStart(2, '0');
-    const endMinutes = endDate.getMinutes().toString().padStart(2, '0');
-    
-    return `${endHours}:${endMinutes}`;
-  }, []);
-
-  // Toggle section expand/collapse
-  const toggleSection = useCallback((section: keyof typeof expandedSections) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  }, []);
 
   // Fetch appointment details
   useEffect(() => {
@@ -156,7 +125,7 @@ export function AppointmentDetailView({ appointment, onClose }: AppointmentDetai
     fetchData();
   }, [appointment]);
 
-  // Auto-save comment when it changes (with debounce)
+  // Handle auto-save comment when it changes (with debounce)
   useEffect(() => {
     if (!isCommentDirty) return;
     
@@ -182,10 +151,16 @@ export function AppointmentDetailView({ appointment, onClose }: AppointmentDetai
   }, [comment, isCommentDirty, appointment.id]);
 
   // Handle status change
-  const handleStatusChange = useCallback(async (newStatus: AppointmentStatus) => {
+  const handleStatusChange = async (newStatus: AppointmentStatus) => {
     try {
       setStatus(newStatus);
       await updateAppointmentStatus(appointment.id, newStatus);
+      
+      // Call the onStatusChange prop if provided
+      if (onStatusChange) {
+        await onStatusChange();
+      }
+      
       setToast({
         message: `Appointment marked as ${newStatus}`,
         type: 'success'
@@ -198,34 +173,44 @@ export function AppointmentDetailView({ appointment, onClose }: AppointmentDetai
       });
       setStatus(appointment.status); // Revert to original status
     }
-  }, [appointment.id, appointment.status]);
+  };
 
   // Handle form field changes
-  const handleFormChange = useCallback((field: string, value: string) => {
+  const handleFormChange = (field: string, value: string) => {
     setEditForm(prev => {
       const newForm = { ...prev, [field]: value };
       
       // If start time or duration changes, update end time
       if (field === 'startTime' || field === 'duration') {
-        const endTime = updateEndTime(
-          field === 'startTime' ? value : prev.startTime,
-          parseFloat(field === 'duration' ? value : prev.duration)
-        );
-        return { ...newForm, endTime };
+        const [hours, minutes] = newForm.startTime.split(':').map(Number);
+        const startDate = new Date();
+        startDate.setHours(hours, minutes, 0);
+        
+        const durationHours = parseFloat(newForm.duration);
+        const durationMinutes = durationHours * 60;
+        
+        const endDate = new Date(startDate.getTime() + durationMinutes * 60000);
+        const endHours = endDate.getHours().toString().padStart(2, '0');
+        const endMinutes = endDate.getMinutes().toString().padStart(2, '0');
+        
+        return { 
+          ...newForm, 
+          endTime: `${endHours}:${endMinutes}` 
+        };
       }
       
       return newForm;
     });
-  }, [updateEndTime]);
+  };
 
   // Handle comment change
-  const handleCommentChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setComment(e.target.value);
     setIsCommentDirty(true);
-  }, []);
+  };
 
   // Handle save changes
-  const handleSaveChanges = useCallback(async () => {
+  const handleSaveChanges = async () => {
     try {
       setIsSaving(true);
       
@@ -236,6 +221,11 @@ export function AppointmentDetailView({ appointment, onClose }: AppointmentDetai
         status,
         comment
       });
+      
+      // Call the onUpdate prop if provided
+      if (onUpdate) {
+        await onUpdate();
+      }
       
       setIsEditing(false);
       setToast({
@@ -251,10 +241,19 @@ export function AppointmentDetailView({ appointment, onClose }: AppointmentDetai
     } finally {
       setIsSaving(false);
     }
-  }, [appointment.id, editForm, status, comment]);
+  };
+
+  // Handle mark as paid
+  const handleMarkAsPaid = () => {
+    setPaymentStatus('paid');
+    setToast({
+      message: 'Appointment marked as paid',
+      type: 'success'
+    });
+  };
 
   // Handle appointment deletion
-  const handleDeleteAppointment = useCallback(async () => {
+  const handleDeleteAppointment = async () => {
     try {
       setIsDeleting(true);
       await deleteAppointment(appointment.id);
@@ -271,43 +270,25 @@ export function AppointmentDetailView({ appointment, onClose }: AppointmentDetai
       });
       setIsDeleting(false);
     }
-  }, [appointment.id, onClose]);
+  };
 
   // Format appointment date
-  const appointmentDate = useMemo(() => 
-    appointment.date ? new Date(appointment.date) : new Date(),
-    [appointment.date]
-  );
-  
-  const formattedDate = useMemo(() => 
-    format(appointmentDate, 'dd MMMM'),
-    [appointmentDate]
-  );
-  
-  const formattedTime = useMemo(() => 
-    `${appointment.startTime}-${appointment.endTime}`,
-    [appointment.startTime, appointment.endTime]
-  );
+  const appointmentDate = new Date(appointment.date);
+  const formattedDate = format(appointmentDate, 'EEEE, MMMM d, yyyy');
+  const formattedTime = `${appointment.startTime} - ${appointment.endTime}`;
 
-  // Status button styles with memoization
-  const statusButtonStyles = useMemo(() => ({
-    'Pending': {
-      variant: status === 'Pending' ? 'default' : 'outline',
-      className: status === 'Pending' ? 'bg-gray-800' : 'bg-white'
-    },
-    'Arrived': {
-      variant: status === 'Arrived' ? 'default' : 'outline',
-      className: status === 'Arrived' ? 'bg-green-600' : 'bg-white'
-    },
-    'No-Show': {
-      variant: status === 'No-Show' ? 'default' : 'outline',
-      className: status === 'No-Show' ? 'bg-red-600' : 'bg-white'
-    },
-    'Confirmed': {
-      variant: status === 'Confirmed' ? 'default' : 'outline',
-      className: status === 'Confirmed' ? 'bg-blue-600' : 'bg-white'
-    }
-  }), [status]);
+  // Status button styles
+  const getStatusButtonStyle = (buttonStatus: AppointmentStatus) => ({
+    variant: status === buttonStatus ? 'default' : 'outline',
+    className: cn(
+      status === buttonStatus && {
+        'Pending': 'bg-amber-600',
+        'Arrived': 'bg-green-600',
+        'No-Show': 'bg-red-600',
+        'Confirmed': 'bg-blue-600'
+      }[buttonStatus]
+    )
+  });
 
   // Loading state
   if (isLoading) {
@@ -339,36 +320,36 @@ export function AppointmentDetailView({ appointment, onClose }: AppointmentDetai
       <div className="p-4 flex items-center justify-between border-b bg-gray-50">
         <div className="flex items-center space-x-2">
           <Button
-            variant={statusButtonStyles['Pending'].variant as any}
+            variant={getStatusButtonStyle('Pending').variant as any}
             size="sm"
-            className={statusButtonStyles['Pending'].className}
+            className={getStatusButtonStyle('Pending').className}
             onClick={() => handleStatusChange('Pending')}
           >
             <ClockIcon className="w-4 h-4 mr-1" /> Pending
           </Button>
           
           <Button
-            variant={statusButtonStyles['Arrived'].variant as any}
+            variant={getStatusButtonStyle('Arrived').variant as any}
             size="sm"
-            className={statusButtonStyles['Arrived'].className}
+            className={getStatusButtonStyle('Arrived').className}
             onClick={() => handleStatusChange('Arrived')}
           >
             <CheckCircle className="w-4 h-4 mr-1" /> Arrived
           </Button>
           
           <Button
-            variant={statusButtonStyles['No-Show'].variant as any}
+            variant={getStatusButtonStyle('No-Show').variant as any}
             size="sm"
-            className={statusButtonStyles['No-Show'].className}
+            className={getStatusButtonStyle('No-Show').className}
             onClick={() => handleStatusChange('No-Show')}
           >
             <XCircle className="w-4 h-4 mr-1" /> No-Show
           </Button>
           
           <Button
-            variant={statusButtonStyles['Confirmed'].variant as any}
+            variant={getStatusButtonStyle('Confirmed').variant as any}
             size="sm"
-            className={statusButtonStyles['Confirmed'].className}
+            className={getStatusButtonStyle('Confirmed').className}
             onClick={() => handleStatusChange('Confirmed')}
           >
             <CheckCircle className="w-4 h-4 mr-1" /> Confirmed
@@ -380,97 +361,105 @@ export function AppointmentDetailView({ appointment, onClose }: AppointmentDetai
         </Button>
       </div>
 
-      {/* Three-section layout - Main content area */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Section 1: Client Info & Appointment Basic Details */}
-        <div className="w-1/3 border-r border-gray-200 overflow-y-auto p-6">
+      {/* Main content - Two columns */}
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 overflow-auto">
+        {/* Left column - Client Info & Appointment Details */}
+        <div className="border-r border-gray-200 overflow-y-auto p-6">
           <div className="space-y-6">
             {/* Client and appointment info */}
             <div className="space-y-4">
               <div className="flex items-center">
                 <Avatar 
-                  name={client?.name || 'Notion clone'} 
+                  name={client?.name || 'Client'} 
                   className="w-12 h-12 mr-4" 
                 />
                 <div>
-                  <h2 className="font-medium text-xl">{client?.name || 'Notion clone'}</h2>
+                  <h2 className="font-medium text-xl">{client?.name || 'Client'}</h2>
                   <div className="flex items-center text-sm text-gray-500">
                     <PhoneIcon className="w-3.5 h-3.5 mr-1.5" />
-                    <a href={`tel:${client?.phone || '+7474748939'}`} className="hover:text-blue-600 transition-colors">
-                      {client?.phone || '+7474748939'}
+                    <a href={`tel:${client?.phone || '+1234567890'}`} className="hover:text-blue-600 transition-colors">
+                      {client?.phone || '+1234567890'}
                     </a>
                   </div>
                 </div>
               </div>
 
               {/* Appointment date and time */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-center text-gray-700 mb-1">
-                  <CalendarIcon className="w-4 h-4 mr-2 text-gray-400" />
-                  <span className="font-medium">{appointment.date || '2025-03-12'}</span>
+              <Card className="p-4">
+                <div className="space-y-3">
+                  <div className="flex items-center text-gray-700">
+                    <CalendarIcon className="w-4 h-4 mr-2 text-gray-400" />
+                    <span className="font-medium">{formattedDate}</span>
+                  </div>
+                  <div className="flex items-center text-gray-700">
+                    <ClockIcon className="w-4 h-4 mr-2 text-gray-400" />
+                    <span className="font-medium">{formattedTime}</span>
+                    <Badge className="ml-2 bg-blue-100 text-blue-800 hover:bg-blue-200">
+                      {editForm.duration}h
+                    </Badge>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="pl-0 text-blue-600 hover:bg-blue-50"
+                    onClick={() => setIsEditing(!isEditing)}
+                  >
+                    <Edit2Icon className="w-3.5 h-3.5 mr-1.5" />
+                    Edit appointment
+                  </Button>
                 </div>
-                <p className="text-gray-500 text-sm ml-6 mb-2">
-                  {appointment.startTime || '09:30'} - {appointment.endTime || '10:30'} · 
-                  <span className="font-medium"> {calculateDuration(appointment.startTime, appointment.endTime)}h</span>
-                </p>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-gray-600 pl-0.5 hover:bg-gray-100"
-                  onClick={() => setIsEditing(!isEditing)}
-                >
-                  <Edit2Icon className="w-3.5 h-3.5 mr-1.5" />
-                  Edit
-                </Button>
-              </div>
+              </Card>
             </div>
             
             {/* Edit form - conditionally displayed */}
             {isEditing && (
-              <div className="bg-gray-50 p-4 rounded-md">
+              <Card className="p-4">
                 <h3 className="font-medium text-sm mb-3">Edit Appointment</h3>
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">Date</label>
-                    <input 
+                    <Input 
                       type="date"
                       value={editForm.date}
                       onChange={(e) => handleFormChange('date', e.target.value)}
-                      className="w-full p-2 text-sm border rounded-md"
+                      className="w-full p-2 text-sm rounded-md"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Duration</label>
-                    <select 
-                      className="w-full p-2 text-sm border rounded-md"
+                    <label className="block text-xs text-gray-500 mb-1">Duration (hours)</label>
+                    <Select 
                       value={editForm.duration}
-                      onChange={(e) => handleFormChange('duration', e.target.value)}
+                      onValueChange={(value) => handleFormChange('duration', value)}
                     >
-                      <option value="0.5">0.5 h.</option>
-                      <option value="1">1 h.</option>
-                      <option value="1.5">1.5 h.</option>
-                      <option value="2">2 h.</option>
-                      <option value="2.5">2.5 h.</option>
-                      <option value="3">3 h.</option>
-                    </select>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Select duration" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0.5">0.5 h</SelectItem>
+                        <SelectItem value="1.0">1.0 h</SelectItem>
+                        <SelectItem value="1.5">1.5 h</SelectItem>
+                        <SelectItem value="2.0">2.0 h</SelectItem>
+                        <SelectItem value="2.5">2.5 h</SelectItem>
+                        <SelectItem value="3.0">3.0 h</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">Start Time</label>
-                    <input 
+                    <Input 
                       type="time"
                       value={editForm.startTime}
                       onChange={(e) => handleFormChange('startTime', e.target.value)}
-                      className="w-full p-2 text-sm border rounded-md"
+                      className="w-full p-2 text-sm rounded-md"
                     />
                   </div>
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">End Time</label>
-                    <input 
+                    <Input 
                       type="time"
                       value={editForm.endTime}
-                      onChange={(e) => handleFormChange('endTime', e.target.value)}
-                      className="w-full p-2 text-sm border rounded-md"
                       disabled
+                      className="w-full p-2 text-sm rounded-md bg-gray-50 cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -487,159 +476,102 @@ export function AppointmentDetailView({ appointment, onClose }: AppointmentDetai
                     onClick={handleSaveChanges}
                     disabled={isSaving}
                   >
-                    {isSaving ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Saving...</> : <><Save className="w-4 h-4 mr-1" /> Save</>}
+                    {isSaving ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Saving...</> : 
+                    <><Save className="w-4 h-4 mr-1" /> Save changes</>}
                   </Button>
                 </div>
-              </div>
+              </Card>
             )}
             
-            {/* Statistics Section */}
-            <Collapsible 
-              open={expandedSections.statistics} 
-              onOpenChange={() => toggleSection('statistics')}
-              className="bg-white rounded-lg"
-            >
-              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 font-medium text-sm">
-                <span>Statistics</span>
-                <ChevronDown className={cn(
-                  "h-4 w-4 transition-transform",
-                  expandedSections.statistics ? "transform rotate-180" : ""
-                )} />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pt-2">
-                <div className="grid grid-cols-2 gap-4 text-sm bg-gray-50 p-3 rounded-lg">
-                  <div>
-                    <p className="text-xs text-gray-500">Last visit</p>
-                    <p>{client?.lastVisit ? format(new Date(client.lastVisit), 'dd.MM HH:mm') : '11.03 17:04'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Total visits</p>
-                    <p>{client?.totalVisits || '0'}</p>
-                  </div>
+            {/* Client stats & visit history (summarized) */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="font-medium text-sm mb-2">Client Overview</h3>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                <div>
+                  <p className="text-xs text-gray-500">Total Visits</p>
+                  <p className="font-medium">{client?.totalVisits || 0}</p>
                 </div>
-              </CollapsibleContent>
-            </Collapsible>
-            
-            {/* Appointment Data Section */}
-            <Collapsible 
-              open={expandedSections.appointmentData} 
-              onOpenChange={() => toggleSection('appointmentData')}
-              className="bg-white rounded-lg"
-            >
-              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 font-medium text-sm">
-                <span>Appointment data</span>
-                <ChevronDown className={cn(
-                  "h-4 w-4 transition-transform",
-                  expandedSections.appointmentData ? "transform rotate-180" : ""
-                )} />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pt-2">
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm bg-gray-50 p-3 rounded-lg">
-                  <div>
-                    <p className="text-xs text-gray-500">Date of creation</p>
-                    <p>13.03 07:17</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Source</p>
-                    <p>"Company form" new widget</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Type</p>
-                    <p>Mobile phone</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Website</p>
-                    <a href="#" className="text-blue-500 hover:underline flex items-center">
-                      app.alteg.io/ <ExternalLink className="h-3 w-3 ml-1" />
-                    </a>
-                  </div>
+                <div>
+                  <p className="text-xs text-gray-500">Last Visit</p>
+                  <p className="font-medium">
+                    {client?.lastVisit ? format(new Date(client.lastVisit), 'MMM d, yyyy') : 'First visit'}
+                  </p>
                 </div>
-              </CollapsibleContent>
-            </Collapsible>
-          </div>
-        </div>
-        
-        {/* Section 2: Service Details */}
-        <div className="w-1/3 border-r border-gray-200 overflow-y-auto p-6">
-          <div className="space-y-6">
-            {/* Service Section */}
-            <div className="space-y-4">
-              <h3 className="font-medium text-base">Service</h3>
-              
-              <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                <div className="flex justify-between items-center">
-                  <h4 className="font-medium text-gray-800">{service?.name || 'Haircut'}</h4>
-                  <p className="text-gray-800 font-medium">{service?.price || '3000'} ₺</p>
-                </div>
-                <p className="text-gray-500 text-sm mt-1">1 hour with {client?.name || 'Client'}</p>
-              </div>
-              
-              <div className="flex justify-between items-center px-1">
-                <span className="text-sm text-gray-600">Amount to pay</span>
-                <div className="flex items-center">
-                  <span className="font-medium mr-2">{service?.price || '3000'} ₺</span>
-                  <Button variant="outline" size="sm" className="h-7 text-xs">Pay</Button>
-                </div>
+                {client?.email && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-gray-500">Email</p>
+                    <p className="font-medium text-blue-600">{client.email}</p>
+                  </div>
+                )}
+                {client?.notes && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-gray-500">Notes</p>
+                    <p className="text-gray-700">{client.notes}</p>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Popular services */}
-            <div className="space-y-3">
-              <div className="flex items-center">
-                <span className="text-sm font-medium">Services</span>
-                <Input 
-                  placeholder="Search" 
-                  className="ml-2 h-7 text-xs" 
-                />
+            {/* Payment section */}
+            <div className="border rounded-lg p-4">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="font-medium">Payment Details</h3>
+                <Badge className={paymentStatus === 'paid' ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}>
+                  {paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}
+                </Badge>
               </div>
               
-              <p className="text-xs text-gray-500">Popular services: Lorem ipsum</p>
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-gray-600">{service?.name || 'Service'}</span>
+                <span className="font-medium">{service?.price ? `₺${service.price}` : '₺0'}</span>
+              </div>
               
-              <div className="space-y-2">
-                <div className="border border-gray-200 rounded-lg p-3 bg-white hover:bg-gray-50 cursor-pointer transition-colors">
-                  <h5 className="font-medium text-sm">{service?.name || 'haircut'}</h5>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>{service?.price || '3000'} ₺</span>
-                    <span>1 h.</span>
-                  </div>
-                </div>
-                
-                <p className="text-xs font-medium mt-2">All services</p>
-                <div className="border border-gray-200 rounded-lg p-3 flex items-center justify-between bg-white hover:bg-gray-50 cursor-pointer transition-colors">
-                  <span className="text-sm">women's haircut</span>
-                  <ChevronDown className="h-4 w-4" />
-                </div>
+              <Separator className="my-2" />
+              
+              <div className="flex justify-between items-center mb-4">
+                <span className="font-medium">Total</span>
+                <span className="font-bold text-lg">{service?.price ? `₺${service.price}` : '₺0'}</span>
               </div>
-            </div>
-            
-            {/* Other Visitor Checkbox */}
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <div className="flex items-center">
-                <Checkbox 
-                  id="anotherVisitor" 
-                  checked={isForAnotherVisitor}
-                  onCheckedChange={(checked) => setIsForAnotherVisitor(!!checked)}
-                  className="mr-2"
-                />
-                <label htmlFor="anotherVisitor" className="text-sm">
-                  Appointment for another visitor
-                </label>
-              </div>
+              
+              {paymentStatus === 'unpaid' && (
+                <Button 
+                  className="w-full" 
+                  onClick={handleMarkAsPaid}
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Mark as Paid
+                </Button>
+              )}
             </div>
           </div>
         </div>
         
-        {/* Section 3: Comments and Tools */}
-        <div className="w-1/3 overflow-y-auto p-6">
+        {/* Right column - Comments and Actions */}
+        <div className="overflow-y-auto p-6">
           <div className="space-y-6">
+            {/* Service details */}
+            <div>
+              <h3 className="font-medium text-base mb-3">Service</h3>
+              <Card className="p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="font-medium text-gray-800">{service?.name || 'Service'}</h4>
+                  <p className="text-gray-800 font-medium">{service?.price ? `₺${service.price}` : '₺0'}</p>
+                </div>
+                <p className="text-gray-500 text-sm">{editForm.duration} hour with {client?.name || 'Client'}</p>
+                {service?.description && (
+                  <p className="text-gray-600 text-sm mt-2 italic">{service.description}</p>
+                )}
+              </Card>
+            </div>
+
             {/* Comments Section */}
             <div className="space-y-2">
               <h3 className="font-medium text-base">Comments</h3>
               <Textarea 
                 value={comment}
                 onChange={handleCommentChange}
-                placeholder="Add a comment..."
-                className="w-full resize-none h-[200px] border-gray-200 text-sm rounded-lg"
+                placeholder="Add notes about this appointment..."
+                className="w-full resize-none h-[150px] border-gray-200 text-sm rounded-lg"
               />
               <p className="text-xs text-gray-400 italic flex items-center">
                 {isCommentDirty ? (
@@ -650,47 +582,51 @@ export function AppointmentDetailView({ appointment, onClose }: AppointmentDetai
               </p>
             </div>
 
-            {/* Tools Section */}
-            <div className="space-y-2">
-              <h3 className="font-medium text-base">Tools</h3>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="text-center p-3 bg-white border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors shadow-sm">
-                  <div className="flex flex-col items-center">
-                    <History className="w-5 h-5 text-gray-500 mb-1" />
-                    <span className="text-sm">Visit history</span>
-                  </div>
-                </div>
-                <div className="text-center p-3 bg-white border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors shadow-sm">
-                  <div className="flex flex-col items-center">
-                    <Repeat className="w-5 h-5 text-gray-500 mb-1" />
-                    <span className="text-sm">Repeat</span>
-                  </div>
-                </div>
-                <div className="text-center p-3 bg-white border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors shadow-sm">
-                  <div className="flex flex-col items-center">
-                    <Bell className="w-5 h-5 text-gray-500 mb-1" />
-                    <span className="text-sm">Notifications</span>
-                  </div>
-                </div>
-                <div className="text-center p-3 bg-white border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors shadow-sm">
-                  <div className="flex flex-col items-center">
-                    <MessageSquare className="w-5 h-5 text-gray-500 mb-1" />
-                    <span className="text-sm">Message</span>
-                  </div>
-                </div>
-                <div className="text-center p-3 bg-white border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors shadow-sm">
-                  <div className="flex flex-col items-center">
-                    <FileText className="w-5 h-5 text-gray-500 mb-1" />
-                    <span className="text-sm">Notes</span>
-                  </div>
-                </div>
-                <div className="text-center p-3 bg-white border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors shadow-sm">
-                  <div className="flex flex-col items-center">
-                    <Clipboard className="w-5 h-5 text-gray-500 mb-1" />
-                    <span className="text-sm">Reports</span>
-                  </div>
-                </div>
+            {/* Quick actions */}
+            <div>
+              <h3 className="font-medium text-base mb-3">Quick Actions</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <Button 
+                  variant="outline" 
+                  className="flex flex-col h-auto py-3 border-gray-200"
+                  onClick={() => window.open(`tel:${client?.phone}`)}
+                >
+                  <PhoneIcon className="h-5 w-5 mb-1 text-blue-600" />
+                  <span className="text-sm">Call Client</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="flex flex-col h-auto py-3 border-gray-200"
+                  onClick={() => {
+                    // Create a duplicate appointment logic would go here
+                    setToast({
+                      message: 'Creating new appointment for this client',
+                      type: 'info'
+                    });
+                  }}
+                >
+                  <UserIcon className="h-5 w-5 mb-1 text-purple-600" />
+                  <span className="text-sm">New Appointment</span>
+                </Button>
               </div>
+            </div>
+
+            {/* Reminder section */}
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+              <h3 className="font-medium text-blue-900 mb-2 flex items-center">
+                <Info className="h-4 w-4 mr-1.5 text-blue-600" />
+                Client Reminders
+              </h3>
+              <ul className="space-y-2 text-blue-800 text-sm">
+                <li className="flex items-start">
+                  <ArrowRight className="h-3.5 w-3.5 mt-1 mr-2 flex-shrink-0" />
+                  <span>Ask if they want to schedule their next appointment</span>
+                </li>
+                <li className="flex items-start">
+                  <ArrowRight className="h-3.5 w-3.5 mt-1 mr-2 flex-shrink-0" />
+                  <span>Check if their contact information is up to date</span>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
@@ -707,18 +643,9 @@ export function AppointmentDetailView({ appointment, onClose }: AppointmentDetai
           {isDeleting ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Deleting...</> : 'Delete appointment'}
         </Button>
         
-        {isEditing ? (
-          <Button
-            onClick={handleSaveChanges}
-            disabled={isSaving}
-          >
-            {isSaving ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Saving...</> : <><Save className="w-4 h-4 mr-1" /> Save changes</>}
-          </Button>
-        ) : (
-          <Button variant="ghost" onClick={onClose}>
-            Close
-          </Button>
-        )}
+        <Button onClick={onClose}>
+          Close
+        </Button>
       </div>
       
       {/* Delete confirmation dialog */}
@@ -764,18 +691,9 @@ export function AppointmentDetailView({ appointment, onClose }: AppointmentDetai
           </div>
         </div>
       )}
-      
-      {/* CSS to hide scrollbars */}
-      <style jsx global>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        
-        .scrollbar-hide {
-          -ms-overflow-style: none;  /* IE and Edge */
-          scrollbar-width: none;  /* Firefox */
-        }
-      `}</style>
     </div>
   );
 }
+
+// Add an export alias for backward compatibility
+export const AppointmentDetailView = ImprovedAppointmentDetail;

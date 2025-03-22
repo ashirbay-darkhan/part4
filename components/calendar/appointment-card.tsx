@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getService, getClient } from '@/lib/api';
-import { AppointmentDetailView } from '@/components/calendar/appointment-detail';
+import { ImprovedAppointmentDetail } from '@/components/calendar/appointment-detail';
 import { format, parseISO, differenceInMinutes } from 'date-fns';
 
 interface AppointmentCardProps {
@@ -270,14 +270,15 @@ export function AppointmentCard({ appointment, onClick, onStatusChange, style }:
       
       {/* Modal dialog for appointment details */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen} modal={true}>
-        <DialogContent className="p-0 !max-w-[1400px] !w-[95vw] h-[90vh] sm:!max-w-[1200px] overflow-hidden three-section-layout">
+        <DialogContent className="p-0 !max-w-[1400px] !w-[95vw] h-[90vh] sm:!max-w-[1200px] overflow-hidden">
           <DialogHeader className="sr-only">
             <DialogTitle>Appointment Details</DialogTitle>
           </DialogHeader>
           {isDialogOpen && (
-            <AppointmentDetailView
+            <ImprovedAppointmentDetail
               appointment={appointment}
               onClose={handleCloseDialog}
+              onStatusChange={onStatusChange}
             />
           )}
         </DialogContent>
