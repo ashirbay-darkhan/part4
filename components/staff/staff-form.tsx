@@ -7,7 +7,7 @@ import { getBusinessServices } from '@/lib/api/staff-service';
 import { Tooltip } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/components/ui/use-toast';
-import { Calendar, Clock, X, Plus, Coffee } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -28,7 +28,6 @@ interface StaffFormData {
   phone: string;
   serviceIds: string[];
   role?: 'admin' | 'staff';
-  workingHours?: WorkingHours[];
 }
 
 export function StaffForm({ isOpen, onClose, onSubmit, initialData }: StaffFormProps) {
@@ -39,7 +38,6 @@ export function StaffForm({ isOpen, onClose, onSubmit, initialData }: StaffFormP
     avatar: '',
     phone: '',
     serviceIds: [],
-    workingHours: [],
   });
   
   // UI state
@@ -58,7 +56,6 @@ export function StaffForm({ isOpen, onClose, onSubmit, initialData }: StaffFormP
         avatar: initialData?.avatar || '',
         phone: initialData?.phone || '',
         serviceIds: initialData?.serviceIds || [],
-        workingHours: initialData?.workingHours || [],
       });
       setActiveTab('basic');
       
@@ -250,10 +247,9 @@ export function StaffForm({ isOpen, onClose, onSubmit, initialData }: StaffFormP
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col overflow-hidden">
           <div className="px-6 pt-4 border-b flex-shrink-0">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="basic">Basic Information</TabsTrigger>
               <TabsTrigger value="services">Services Offered</TabsTrigger>
-              <TabsTrigger value="hours">Working Hours</TabsTrigger>
             </TabsList>
           </div>
           
@@ -441,285 +437,6 @@ export function StaffForm({ isOpen, onClose, onSubmit, initialData }: StaffFormP
                       ))}
                     </div>
                   )}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="hours" className="mt-0">
-                <div className="mb-4">
-                  <h3 className="text-base font-medium text-gray-900">Working Hours</h3>
-                  <p className="text-sm text-gray-500">Set when this staff member is available to work</p>
-                </div>
-                
-                <div className="space-y-4">
-                  {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day, index) => {
-                    // Use index directly for dayOfWeek (0-indexed in the array, but 1-indexed in the data)
-                    const dayIndex = index + 1;
-                    
-                    // Find the day in the working hours array or create a default
-                    const existingDay = formData.workingHours?.find(h => h.dayOfWeek === dayIndex);
-                    const dayData = existingDay || {
-                      dayOfWeek: dayIndex,
-                      isWorking: index < 5, // Default Mon-Fri as working days
-                      startTime: '09:00',
-                      endTime: '17:00'
-                    };
-                    
-                    // Ensure this day is in the workingHours array
-                    if (!existingDay && !formData.workingHours) {
-                      updateFormField('workingHours', [dayData]);
-                    } else if (!existingDay && formData.workingHours) {
-                      updateFormField('workingHours', [...formData.workingHours, dayData]);
-                    }
-                    
-                    const toggleDayOff = () => {
-                      // Create a deep copy of the workingHours array
-                      const newHours = [...(formData.workingHours || [])];
-                      const existingIndex = newHours.findIndex(h => h.dayOfWeek === dayIndex);
-                      
-                      if (existingIndex >= 0) {
-                        // Update existing day - toggle isWorking
-                        newHours[existingIndex] = {
-                          ...newHours[existingIndex],
-                          isWorking: !newHours[existingIndex].isWorking
-                        };
-                      } else {
-                        // Add new day if it doesn't exist
-                        newHours.push({
-                          dayOfWeek: dayIndex,
-                          isWorking: false, // Set to off since we're toggling it off
-                          startTime: '09:00',
-                          endTime: '17:00'
-                        });
-                      }
-                      
-                      updateFormField('workingHours', newHours);
-                    };
-                    
-                    return (
-                      <div key={day} className="border rounded-md p-4 bg-white shadow-sm">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-3">
-                            <div className="relative inline-flex">
-                              <Checkbox 
-                                id={`working-${day}`}
-                                checked={dayData.isWorking}
-                                onCheckedChange={(checked) => {
-                                  // Create a deep copy of the workingHours array
-                                  const newHours = [...(formData.workingHours || [])];
-                                  const existingIndex = newHours.findIndex(h => h.dayOfWeek === dayIndex);
-                                  
-                                  if (existingIndex >= 0) {
-                                    // Update existing day
-                                    newHours[existingIndex] = {
-                                      ...newHours[existingIndex],
-                                      isWorking: !!checked
-                                    };
-                                  } else {
-                                    // Add new day if it doesn't exist
-                                    newHours.push({
-                                      dayOfWeek: dayIndex,
-                                      isWorking: !!checked,
-                                      startTime: '09:00',
-                                      endTime: '17:00'
-                                    });
-                                  }
-                                  
-                                  updateFormField('workingHours', newHours);
-                                }}
-                                className="h-5 w-5"
-                              />
-                            </div>
-                            <Label 
-                              htmlFor={`working-${day}`} 
-                              className="font-medium text-base cursor-pointer select-none"
-                            >
-                              {day}
-                            </Label>
-                          </div>
-                          {dayData.isWorking ? (
-                            <Badge 
-                              variant="outline" 
-                              className="bg-blue-50 text-blue-800 border-blue-200 px-3 py-1 cursor-pointer hover:bg-blue-100"
-                              onClick={toggleDayOff}
-                            >
-                              Working Day
-                            </Badge>
-                          ) : (
-                            <Badge 
-                              variant="outline" 
-                              className="bg-gray-100 text-gray-800 border-gray-200 px-3 py-1 cursor-pointer hover:bg-gray-200"
-                              onClick={toggleDayOff}
-                            >
-                              Day Off
-                            </Badge>
-                          )}
-                        </div>
-                        
-                        {dayData.isWorking && (
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-md">
-                              <div>
-                                <Label className="text-sm font-medium mb-1 block">Start Time</Label>
-                                <div className="relative group cursor-pointer">
-                                  <Input 
-                                    type="time"
-                                    value={dayData.startTime}
-                                    onChange={(e) => {
-                                      const newHours = [...(formData.workingHours || [])];
-                                      const existingIndex = newHours.findIndex(h => h.dayOfWeek === dayIndex);
-                                      
-                                      if (existingIndex >= 0) {
-                                        newHours[existingIndex] = {
-                                          ...newHours[existingIndex],
-                                          startTime: e.target.value
-                                        };
-                                      } else {
-                                        newHours.push({
-                                          dayOfWeek: dayIndex,
-                                          isWorking: true,
-                                          startTime: e.target.value,
-                                          endTime: '17:00'
-                                        });
-                                      }
-                                      
-                                      updateFormField('workingHours', newHours);
-                                    }}
-                                    className="pr-8 bg-white group-hover:border-blue-300 transition-colors"
-                                  />
-                                  <Clock className="absolute right-2 top-2.5 h-4 w-4 text-gray-500" />
-                                </div>
-                              </div>
-                              <div>
-                                <Label className="text-sm font-medium mb-1 block">End Time</Label>
-                                <div className="relative group cursor-pointer">
-                                  <Input 
-                                    type="time"
-                                    value={dayData.endTime}
-                                    onChange={(e) => {
-                                      const newHours = [...(formData.workingHours || [])];
-                                      const existingIndex = newHours.findIndex(h => h.dayOfWeek === dayIndex);
-                                      
-                                      if (existingIndex >= 0) {
-                                        newHours[existingIndex] = {
-                                          ...newHours[existingIndex],
-                                          endTime: e.target.value
-                                        };
-                                      } else {
-                                        newHours.push({
-                                          dayOfWeek: dayIndex,
-                                          isWorking: true,
-                                          startTime: '09:00',
-                                          endTime: e.target.value
-                                        });
-                                      }
-                                      
-                                      updateFormField('workingHours', newHours);
-                                    }}
-                                    className="pr-8 bg-white group-hover:border-blue-300 transition-colors"
-                                  />
-                                  <Clock className="absolute right-2 top-2.5 h-4 w-4 text-gray-500" />
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <Button 
-                                type="button" 
-                                variant="outline" 
-                                size="sm"
-                                className="w-full text-xs flex items-center justify-center"
-                                onClick={() => {
-                                  const newHours = [...(formData.workingHours || [])];
-                                  const existingIndex = newHours.findIndex(h => h.dayOfWeek === dayIndex);
-                                  
-                                  if (existingIndex >= 0) {
-                                    // Toggle break times with a proper immutable update
-                                    const updatedDay = { ...newHours[existingIndex] };
-                                    
-                                    if (updatedDay.breakStart) {
-                                      // Remove break times
-                                      const { breakStart, breakEnd, ...restOfDay } = updatedDay;
-                                      newHours[existingIndex] = restOfDay;
-                                    } else {
-                                      // Add default break times
-                                      updatedDay.breakStart = '12:00';
-                                      updatedDay.breakEnd = '13:00';
-                                      newHours[existingIndex] = updatedDay;
-                                    }
-                                    
-                                    updateFormField('workingHours', newHours);
-                                  }
-                                }}
-                              >
-                                {dayData.breakStart ? (
-                                  <>
-                                    <X className="h-3 w-3 mr-1" />
-                                    Remove Break Time
-                                  </>
-                                ) : (
-                                  <>
-                                    <Plus className="h-3 w-3 mr-1" />
-                                    Add Break Time
-                                  </>
-                                )}
-                              </Button>
-                              
-                              {dayData.breakStart && (
-                                <div className="grid grid-cols-2 gap-4 mt-3 p-3 bg-blue-50 rounded-md">
-                                  <div>
-                                    <Label className="text-xs font-medium mb-1 block">Break Start</Label>
-                                    <div className="relative group cursor-pointer">
-                                      <Input 
-                                        type="time"
-                                        value={dayData.breakStart}
-                                        onChange={(e) => {
-                                          const newHours = [...(formData.workingHours || [])];
-                                          const existingIndex = newHours.findIndex(h => h.dayOfWeek === dayIndex);
-                                          
-                                          if (existingIndex >= 0) {
-                                            newHours[existingIndex] = {
-                                              ...newHours[existingIndex],
-                                              breakStart: e.target.value
-                                            };
-                                            updateFormField('workingHours', newHours);
-                                          }
-                                        }}
-                                        className="h-8 text-sm pr-8 bg-white group-hover:border-blue-300 transition-colors"
-                                      />
-                                      <Coffee className="absolute right-2 top-1.5 h-4 w-4 text-gray-500" />
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <Label className="text-xs font-medium mb-1 block">Break End</Label>
-                                    <div className="relative group cursor-pointer">
-                                      <Input 
-                                        type="time"
-                                        value={dayData.breakEnd}
-                                        onChange={(e) => {
-                                          const newHours = [...(formData.workingHours || [])];
-                                          const existingIndex = newHours.findIndex(h => h.dayOfWeek === dayIndex);
-                                          
-                                          if (existingIndex >= 0) {
-                                            newHours[existingIndex] = {
-                                              ...newHours[existingIndex],
-                                              breakEnd: e.target.value
-                                            };
-                                            updateFormField('workingHours', newHours);
-                                          }
-                                        }}
-                                        className="h-8 text-sm pr-8 bg-white group-hover:border-blue-300 transition-colors"
-                                      />
-                                      <Coffee className="absolute right-2 top-1.5 h-4 w-4 text-gray-500" />
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
                 </div>
               </TabsContent>
             </div>

@@ -71,9 +71,9 @@
       "email": "gilfoile@gmail.com",
       "serviceIds": [
         "1742244200559",
+        "1742232528534",
         "1742230995581",
-        "1742231297430",
-        "1742232528534"
+        "1742231297430"
       ],
       "businessId": "1742230321916",
       "businessName": "Pied piper",
@@ -82,46 +82,46 @@
       "isVerified": true,
       "avatar": "https://ui-avatars.com/api/?name=Gilfoile%20H.&background=4f46e5&color=ffffff&bold=true&format=svg",
       "role": "staff",
-      "_timestamp": 1742703977685,
+      "_timestamp": 1742742670567,
       "phone": "",
       "workingHours": [
         {
           "dayOfWeek": 1,
           "isWorking": true,
-          "startTime": "08:00",
-          "endTime": "16:00",
+          "startTime": "09:00",
+          "endTime": "18:00",
           "breakStart": "12:00",
           "breakEnd": "13:00"
         },
         {
           "dayOfWeek": 2,
           "isWorking": true,
-          "startTime": "08:00",
-          "endTime": "16:00",
+          "startTime": "09:00",
+          "endTime": "18:00",
           "breakStart": "12:00",
           "breakEnd": "13:00"
         },
         {
           "dayOfWeek": 3,
           "isWorking": true,
-          "startTime": "08:00",
-          "endTime": "16:00",
+          "startTime": "09:00",
+          "endTime": "18:00",
           "breakStart": "12:00",
           "breakEnd": "13:00"
         },
         {
           "dayOfWeek": 4,
           "isWorking": true,
-          "startTime": "08:00",
-          "endTime": "16:00",
+          "startTime": "09:00",
+          "endTime": "18:00",
           "breakStart": "12:00",
           "breakEnd": "13:00"
         },
         {
           "dayOfWeek": 5,
           "isWorking": true,
-          "startTime": "08:00",
-          "endTime": "16:00",
+          "startTime": "09:00",
+          "endTime": "18:00",
           "breakStart": "12:00",
           "breakEnd": "13:00"
         },
