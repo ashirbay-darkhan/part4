@@ -5,8 +5,6 @@ import {
   Plus, 
   Search, 
   Users, 
-  CheckCircle, 
-  Scissors 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +13,6 @@ import { StaffForm } from '@/components/staff/staff-form';
 import { useAuth } from '@/lib/auth/authContext';
 import { BusinessUser, Service } from '@/types';
 import { 
-  getBusinessStaff, 
   createStaff, 
   updateStaff, 
   deleteStaff,
@@ -24,10 +21,7 @@ import {
   getBusinessServices
 } from '@/lib/api/staff-service';
 import { useToast } from '@/components/ui/use-toast';
-import { 
-  Card, 
-  CardContent 
-} from '@/components/ui/card';
+
 import { 
   Select, 
   SelectContent, 
@@ -424,44 +418,6 @@ export default function StaffPage() {
         </div>
       </div>
 
-      {/* Stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card className="bg-white dark:bg-gray-800">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Staff</p>
-              <h3 className="text-2xl font-bold mt-1">{filteredStaff.length}</h3>
-            </div>
-            <Users className="h-8 w-8 text-pawly-teal" />
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-white dark:bg-gray-800">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Services Coverage</p>
-              <h3 className="text-2xl font-bold mt-1">
-                {Math.round((services.length > 0 
-                  ? staffMembers.filter(s => s.serviceIds.length > 0).length / services.length * 100 
-                  : 0))}%
-              </h3>
-            </div>
-            <Scissors className="h-8 w-8 text-pawly-amber" />
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-white dark:bg-gray-800">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Verified Staff</p>
-              <h3 className="text-2xl font-bold mt-1">
-                {staffMembers.filter(s => s.isVerified).length}/{staffMembers.length}
-              </h3>
-            </div>
-            <CheckCircle className="h-8 w-8 text-pawly-dark-blue" />
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Search and filters */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mb-6">

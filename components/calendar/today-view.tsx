@@ -38,13 +38,14 @@ const formatTimeDisplay = (time: string) => {
   const [hours, minutes] = time.split(':').map(Number);
   
   if (minutes === 0) {
+    // Show full hour format (e.g., "9:00" instead of just "9")
     return { primary: `${hours}`, secondary: '00' };
-  } else if (minutes === 15) {
-    return { primary: '', secondary: '15' };
   } else if (minutes === 30) {
+    // Show consistent format for half-hour (e.g., "9:30" instead of just "30")
     return { primary: '', secondary: '30' };
   } else {
-    return { primary: '', secondary: '45' };
+    // Return empty for quarter hours
+    return { primary: '', secondary: '' };
   }
 };
 
@@ -297,8 +298,8 @@ export function TodayView({ onBackToWeekView }: TodayViewProps) {
         
         {/* Grid content with minimum height to ensure all hours are shown */}
         <div className="flex flex-1 min-h-[1000px]">
-          {/* Time labels column - sticky */}
-          <div className="w-20 flex-shrink-0 border-r border-gray-300 bg-white pt-6 shadow-sm z-10 sticky left-0" role="rowheader">
+          {/* Time labels column - sticky - add padding-top to align with staff header height */}
+          <div className="w-20 flex-shrink-0 border-r border-gray-300 bg-white shadow-sm z-10 sticky left-0 pt-[20px]" role="rowheader">
             {timeSlots.map(time => {
               const timeLabel = formatTimeDisplay(time);
               const [hours, minutes] = time.split(':').map(Number);
@@ -318,11 +319,17 @@ export function TodayView({ onBackToWeekView }: TodayViewProps) {
                   aria-hidden="true"
                 >
                   {showLabel && (
-                    <div className="absolute top-0 right-2 text-xs -translate-y-1/2 flex">
-                      {timeLabel.primary && (
-                        <span className="font-medium text-gray-800 mr-0.5">{timeLabel.primary}</span>
+                    <div className="absolute top-0 right-2 text-xs -translate-y-1/2 flex items-center">
+                      {minutes === 0 ? (
+                        // Full hour format: "08:00"
+                        <div className="flex">
+                          <span className="font-medium text-gray-800">{timeLabel.primary}</span>
+                          <span className="text-gray-400">:{timeLabel.secondary}</span>
+                        </div>
+                      ) : (
+                        // Half hour format: just "30"
+                        <span className="text-gray-400">{timeLabel.secondary}</span>
                       )}
-                      <span className="text-gray-400">{timeLabel.secondary}</span>
                     </div>
                   )}
                 </div>
@@ -345,7 +352,7 @@ export function TodayView({ onBackToWeekView }: TodayViewProps) {
               return (
                 <div 
                   key={staff.id} 
-                  className={`flex-1 min-w-[180px] border-r border-gray-300 relative pt-12 ${
+                  className={`flex-1 min-w-[180px] border-r border-gray-300 relative pt-[20px] ${
                     index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
                   }`}
                   role="gridcell"
@@ -358,19 +365,13 @@ export function TodayView({ onBackToWeekView }: TodayViewProps) {
                   {staffAppointments.map(appointment => {
                     const style = calculateAppointmentStyle(appointment);
                     
-                    // Adjust style to account for the top padding
-                    const adjustedStyle = {
-                      ...style,
-                      top: `calc(${style.top} + 48px)`, // 48px (12rem) for the padding-top
-                    };
-                    
                     return (
                       <AppointmentCard
                         key={appointment.id}
                         appointment={appointment}
                         onClick={() => refreshAppointments()}
                         onStatusChange={refreshAppointments}
-                        style={adjustedStyle}
+                        style={style}
                       />
                     );
                   })}

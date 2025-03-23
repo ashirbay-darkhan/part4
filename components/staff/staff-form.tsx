@@ -471,6 +471,30 @@ export function StaffForm({ isOpen, onClose, onSubmit, initialData }: StaffFormP
                       updateFormField('workingHours', [...formData.workingHours, dayData]);
                     }
                     
+                    const toggleDayOff = () => {
+                      // Create a deep copy of the workingHours array
+                      const newHours = [...(formData.workingHours || [])];
+                      const existingIndex = newHours.findIndex(h => h.dayOfWeek === dayIndex);
+                      
+                      if (existingIndex >= 0) {
+                        // Update existing day - toggle isWorking
+                        newHours[existingIndex] = {
+                          ...newHours[existingIndex],
+                          isWorking: !newHours[existingIndex].isWorking
+                        };
+                      } else {
+                        // Add new day if it doesn't exist
+                        newHours.push({
+                          dayOfWeek: dayIndex,
+                          isWorking: false, // Set to off since we're toggling it off
+                          startTime: '09:00',
+                          endTime: '17:00'
+                        });
+                      }
+                      
+                      updateFormField('workingHours', newHours);
+                    };
+                    
                     return (
                       <div key={day} className="border rounded-md p-4 bg-white shadow-sm">
                         <div className="flex items-center justify-between mb-4">
@@ -513,11 +537,19 @@ export function StaffForm({ isOpen, onClose, onSubmit, initialData }: StaffFormP
                             </Label>
                           </div>
                           {dayData.isWorking ? (
-                            <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200 px-3 py-1">
+                            <Badge 
+                              variant="outline" 
+                              className="bg-blue-50 text-blue-800 border-blue-200 px-3 py-1 cursor-pointer hover:bg-blue-100"
+                              onClick={toggleDayOff}
+                            >
                               Working Day
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-200 px-3 py-1">
+                            <Badge 
+                              variant="outline" 
+                              className="bg-gray-100 text-gray-800 border-gray-200 px-3 py-1 cursor-pointer hover:bg-gray-200"
+                              onClick={toggleDayOff}
+                            >
                               Day Off
                             </Badge>
                           )}
@@ -528,8 +560,7 @@ export function StaffForm({ isOpen, onClose, onSubmit, initialData }: StaffFormP
                             <div className="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-md">
                               <div>
                                 <Label className="text-sm font-medium mb-1 block">Start Time</Label>
-                                <div className="relative">
-                                  <Clock className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+                                <div className="relative group cursor-pointer">
                                   <Input 
                                     type="time"
                                     value={dayData.startTime}
@@ -553,14 +584,14 @@ export function StaffForm({ isOpen, onClose, onSubmit, initialData }: StaffFormP
                                       
                                       updateFormField('workingHours', newHours);
                                     }}
-                                    className="pl-8 bg-white"
+                                    className="pr-8 bg-white group-hover:border-blue-300 transition-colors"
                                   />
+                                  <Clock className="absolute right-2 top-2.5 h-4 w-4 text-gray-500" />
                                 </div>
                               </div>
                               <div>
                                 <Label className="text-sm font-medium mb-1 block">End Time</Label>
-                                <div className="relative">
-                                  <Clock className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+                                <div className="relative group cursor-pointer">
                                   <Input 
                                     type="time"
                                     value={dayData.endTime}
@@ -584,8 +615,9 @@ export function StaffForm({ isOpen, onClose, onSubmit, initialData }: StaffFormP
                                       
                                       updateFormField('workingHours', newHours);
                                     }}
-                                    className="pl-8 bg-white"
+                                    className="pr-8 bg-white group-hover:border-blue-300 transition-colors"
                                   />
+                                  <Clock className="absolute right-2 top-2.5 h-4 w-4 text-gray-500" />
                                 </div>
                               </div>
                             </div>
@@ -636,8 +668,7 @@ export function StaffForm({ isOpen, onClose, onSubmit, initialData }: StaffFormP
                                 <div className="grid grid-cols-2 gap-4 mt-3 p-3 bg-blue-50 rounded-md">
                                   <div>
                                     <Label className="text-xs font-medium mb-1 block">Break Start</Label>
-                                    <div className="relative">
-                                      <Coffee className="absolute left-2 top-2 h-4 w-4 text-gray-500" />
+                                    <div className="relative group cursor-pointer">
                                       <Input 
                                         type="time"
                                         value={dayData.breakStart}
@@ -653,14 +684,14 @@ export function StaffForm({ isOpen, onClose, onSubmit, initialData }: StaffFormP
                                             updateFormField('workingHours', newHours);
                                           }
                                         }}
-                                        className="h-8 text-sm pl-8 bg-white"
+                                        className="h-8 text-sm pr-8 bg-white group-hover:border-blue-300 transition-colors"
                                       />
+                                      <Coffee className="absolute right-2 top-1.5 h-4 w-4 text-gray-500" />
                                     </div>
                                   </div>
                                   <div>
                                     <Label className="text-xs font-medium mb-1 block">Break End</Label>
-                                    <div className="relative">
-                                      <Coffee className="absolute left-2 top-2 h-4 w-4 text-gray-500" />
+                                    <div className="relative group cursor-pointer">
                                       <Input 
                                         type="time"
                                         value={dayData.breakEnd}
@@ -676,8 +707,9 @@ export function StaffForm({ isOpen, onClose, onSubmit, initialData }: StaffFormP
                                             updateFormField('workingHours', newHours);
                                           }
                                         }}
-                                        className="h-8 text-sm pl-8 bg-white"
+                                        className="h-8 text-sm pr-8 bg-white group-hover:border-blue-300 transition-colors"
                                       />
+                                      <Coffee className="absolute right-2 top-1.5 h-4 w-4 text-gray-500" />
                                     </div>
                                   </div>
                                 </div>
