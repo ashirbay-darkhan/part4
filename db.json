@@ -10,26 +10,134 @@
       "businessName": "Pied piper",
       "isVerified": false,
       "serviceIds": [],
-      "avatar": ""
+      "avatar": "",
+      "workingHours": [
+        {
+          "dayOfWeek": 1,
+          "isWorking": true,
+          "startTime": "09:00",
+          "endTime": "17:00",
+          "breakStart": "12:00",
+          "breakEnd": "13:00"
+        },
+        {
+          "dayOfWeek": 2,
+          "isWorking": true,
+          "startTime": "09:00",
+          "endTime": "17:00",
+          "breakStart": "12:00",
+          "breakEnd": "13:00"
+        },
+        {
+          "dayOfWeek": 3,
+          "isWorking": true,
+          "startTime": "09:00",
+          "endTime": "17:00",
+          "breakStart": "12:00",
+          "breakEnd": "13:00"
+        },
+        {
+          "dayOfWeek": 4,
+          "isWorking": true,
+          "startTime": "09:00",
+          "endTime": "17:00",
+          "breakStart": "12:00",
+          "breakEnd": "13:00"
+        },
+        {
+          "dayOfWeek": 5,
+          "isWorking": true,
+          "startTime": "09:00",
+          "endTime": "16:00",
+          "breakStart": "12:00",
+          "breakEnd": "13:00"
+        },
+        {
+          "dayOfWeek": 6,
+          "isWorking": false,
+          "startTime": "09:00",
+          "endTime": "17:00"
+        },
+        {
+          "dayOfWeek": 7,
+          "isWorking": false,
+          "startTime": "09:00",
+          "endTime": "17:00"
+        }
+      ]
     },
     {
       "name": "Gilfoile H.",
       "email": "gilfoile@gmail.com",
       "serviceIds": [
         "1742244200559",
-        "1742232528534",
         "1742230995581",
-        "1742231297430"
+        "1742231297430",
+        "1742232528534"
       ],
       "businessId": "1742230321916",
       "businessName": "Pied piper",
       "password": "password123",
       "id": "1742244079841",
       "isVerified": true,
-      "avatar": "",
+      "avatar": "https://ui-avatars.com/api/?name=Gilfoile%20H.&background=4f46e5&color=ffffff&bold=true&format=svg",
       "role": "staff",
-      "_timestamp": 1742417232467,
-      "phone": ""
+      "_timestamp": 1742703411745,
+      "phone": "",
+      "workingHours": [
+        {
+          "dayOfWeek": 1,
+          "isWorking": true,
+          "startTime": "10:00",
+          "endTime": "20:30",
+          "breakStart": "12:00",
+          "breakEnd": "13:00"
+        },
+        {
+          "dayOfWeek": 2,
+          "isWorking": true,
+          "startTime": "08:00",
+          "endTime": "16:00",
+          "breakStart": "12:00",
+          "breakEnd": "13:00"
+        },
+        {
+          "dayOfWeek": 3,
+          "isWorking": true,
+          "startTime": "08:00",
+          "endTime": "16:00",
+          "breakStart": "12:00",
+          "breakEnd": "13:00"
+        },
+        {
+          "dayOfWeek": 4,
+          "isWorking": true,
+          "startTime": "08:00",
+          "endTime": "16:00",
+          "breakStart": "12:00",
+          "breakEnd": "13:00"
+        },
+        {
+          "dayOfWeek": 5,
+          "isWorking": true,
+          "startTime": "08:00",
+          "endTime": "16:00",
+          "breakStart": "12:00",
+          "breakEnd": "13:00"
+        },
+        {
+          "dayOfWeek": 6,
+          "isWorking": false,
+          "startTime": "09:00",
+          "endTime": "17:00"
+        },
+        {
+          "dayOfWeek": 7,
+          "isWorking": false,
+          "startTime": "09:00",
+          "endTime": "17:00"
+        }
+      ]
     },
     {
       "name": "Jared D.",
@@ -44,7 +152,61 @@
       "businessName": "Pied piper",
       "password": "password123",
       "id": "1742411457578",
-      "isVerified": true
+      "isVerified": true,
+      "workingHours": [
+        {
+          "dayOfWeek": 1,
+          "isWorking": true,
+          "startTime": "10:00",
+          "endTime": "18:00",
+          "breakStart": "13:00",
+          "breakEnd": "14:00"
+        },
+        {
+          "dayOfWeek": 2,
+          "isWorking": true,
+          "startTime": "10:00",
+          "endTime": "18:00",
+          "breakStart": "13:00",
+          "breakEnd": "14:00"
+        },
+        {
+          "dayOfWeek": 3,
+          "isWorking": true,
+          "startTime": "10:00",
+          "endTime": "18:00",
+          "breakStart": "13:00",
+          "breakEnd": "14:00"
+        },
+        {
+          "dayOfWeek": 4,
+          "isWorking": true,
+          "startTime": "10:00",
+          "endTime": "18:00",
+          "breakStart": "13:00",
+          "breakEnd": "14:00"
+        },
+        {
+          "dayOfWeek": 5,
+          "isWorking": true,
+          "startTime": "10:00",
+          "endTime": "18:00",
+          "breakStart": "13:00",
+          "breakEnd": "14:00"
+        },
+        {
+          "dayOfWeek": 6,
+          "isWorking": true,
+          "startTime": "11:00",
+          "endTime": "15:00"
+        },
+        {
+          "dayOfWeek": 7,
+          "isWorking": false,
+          "startTime": "09:00",
+          "endTime": "17:00"
+        }
+      ]
     },
     {
       "id": "1742419128863",
@@ -56,7 +218,61 @@
       "businessName": "Nike",
       "isVerified": false,
       "avatar": "https://ui-avatars.com/api/?name=%D0%94%D0%B0%D1%80%D1%85%D0%B0%D0%BD&background=BE185D&color=fff",
-      "serviceIds": []
+      "serviceIds": [],
+      "workingHours": [
+        {
+          "dayOfWeek": 1,
+          "isWorking": true,
+          "startTime": "09:00",
+          "endTime": "17:00",
+          "breakStart": "12:30",
+          "breakEnd": "13:30"
+        },
+        {
+          "dayOfWeek": 2,
+          "isWorking": true,
+          "startTime": "09:00",
+          "endTime": "17:00",
+          "breakStart": "12:30",
+          "breakEnd": "13:30"
+        },
+        {
+          "dayOfWeek": 3,
+          "isWorking": true,
+          "startTime": "09:00",
+          "endTime": "17:00",
+          "breakStart": "12:30",
+          "breakEnd": "13:30"
+        },
+        {
+          "dayOfWeek": 4,
+          "isWorking": true,
+          "startTime": "09:00",
+          "endTime": "17:00",
+          "breakStart": "12:30",
+          "breakEnd": "13:30"
+        },
+        {
+          "dayOfWeek": 5,
+          "isWorking": true,
+          "startTime": "09:00",
+          "endTime": "17:00",
+          "breakStart": "12:30",
+          "breakEnd": "13:30"
+        },
+        {
+          "dayOfWeek": 6,
+          "isWorking": false,
+          "startTime": "09:00",
+          "endTime": "17:00"
+        },
+        {
+          "dayOfWeek": 7,
+          "isWorking": false,
+          "startTime": "09:00",
+          "endTime": "17:00"
+        }
+      ]
     },
     {
       "name": "Nikita",
@@ -72,7 +288,61 @@
       "id": "1742419177690",
       "isVerified": true,
       "role": "staff",
-      "_timestamp": 1742422443999
+      "_timestamp": 1742422443999,
+      "workingHours": [
+        {
+          "dayOfWeek": 1,
+          "isWorking": true,
+          "startTime": "09:30",
+          "endTime": "17:30",
+          "breakStart": "13:00",
+          "breakEnd": "14:00"
+        },
+        {
+          "dayOfWeek": 2,
+          "isWorking": true,
+          "startTime": "09:30",
+          "endTime": "17:30",
+          "breakStart": "13:00",
+          "breakEnd": "14:00"
+        },
+        {
+          "dayOfWeek": 3,
+          "isWorking": true,
+          "startTime": "09:30",
+          "endTime": "17:30",
+          "breakStart": "13:00",
+          "breakEnd": "14:00"
+        },
+        {
+          "dayOfWeek": 4,
+          "isWorking": true,
+          "startTime": "09:30",
+          "endTime": "17:30",
+          "breakStart": "13:00",
+          "breakEnd": "14:00"
+        },
+        {
+          "dayOfWeek": 5,
+          "isWorking": true,
+          "startTime": "09:30",
+          "endTime": "17:30",
+          "breakStart": "13:00",
+          "breakEnd": "14:00"
+        },
+        {
+          "dayOfWeek": 6,
+          "isWorking": true,
+          "startTime": "10:00",
+          "endTime": "14:00"
+        },
+        {
+          "dayOfWeek": 7,
+          "isWorking": false,
+          "startTime": "09:00",
+          "endTime": "17:00"
+        }
+      ]
     }
   ],
   "businesses": [

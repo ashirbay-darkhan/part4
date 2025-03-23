@@ -1,22 +1,42 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { 
+  Plus, 
+  Search, 
+  Users, 
+  CheckCircle, 
+  Scissors 
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { StaffTable } from '@/components/staff/staff-table';
 import { StaffForm } from '@/components/staff/staff-form';
 import { useAuth } from '@/lib/auth/authContext';
-import { BusinessUser } from '@/types';
+import { BusinessUser, Service } from '@/types';
 import { 
   getBusinessStaff, 
   createStaff, 
   updateStaff, 
   deleteStaff,
   CreateStaffParams,
-  UpdateStaffParams 
+  UpdateStaffParams,
+  getBusinessServices
 } from '@/lib/api/staff-service';
 import { useToast } from '@/components/ui/use-toast';
+import { 
+  Card, 
+  CardContent 
+} from '@/components/ui/card';
+import { 
+  Select, 
+  SelectContent, 
+  SelectGroup, 
+  SelectItem, 
+  SelectLabel, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 
 export default function StaffPage() {
   const { user, updateCurrentUser } = useAuth();
@@ -26,6 +46,7 @@ export default function StaffPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [currentStaff, setCurrentStaff] = useState<BusinessUser | null>(null);
+  const [services, setServices] = useState<Service[]>([]);
 
   // Check if a staff member is an admin
   const isAdminStaff = useCallback((staff: BusinessUser) => {
@@ -115,11 +136,31 @@ export default function StaffPage() {
     }
   }, [user?.businessId, loadStaff]);
 
+  // Load services when component mounts
+  useEffect(() => {
+    const fetchServices = async () => {
+      if (user?.businessId) {
+        try {
+          const servicesData = await getBusinessServices(user.businessId);
+          setServices(servicesData);
+        } catch (error) {
+          console.error('Failed to load services:', error);
+        }
+      }
+    };
+
+    if (user?.businessId) {
+      fetchServices();
+    }
+  }, [user?.businessId]);
+
   // Filter staff based on search query
-  const filteredStaff = staffMembers.filter(staff => 
-    staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    staff.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredStaff = staffMembers
+    .filter(staff => !isAdminStaff(staff))
+    .filter(staff => 
+      staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      staff.email.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
   // Handlers for staff operations
   const handleAddStaff = () => {
@@ -174,6 +215,7 @@ export default function StaffPage() {
       avatar: data.avatar,
       serviceIds: data.serviceIds,
       phone: data.phone,
+      workingHours: data.workingHours, // Ensure working hours are included
     };
     
     // Preserve admin status for the owner
@@ -182,6 +224,8 @@ export default function StaffPage() {
     } else {
       updateParams.role = 'staff';
     }
+    
+    console.log('Updating staff with working hours:', updateParams.workingHours);
     
     // First, optimistically update the UI state
     setStaffMembers(prevStaff => {
@@ -193,45 +237,66 @@ export default function StaffPage() {
       );
     });
     
-    // Then send the update to the server
-    const updatedStaff = await updateStaff(updateParams);
-    
-    // Fetch the specific updated staff member directly to ensure we have fresh data
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    const timestamp = Date.now();
-    
-    // Wait a moment for the database to fully update
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Use the direct user endpoint which is reliable
-    const verifyResponse = await fetch(`${API_URL}/users/${currentStaff.id}?_=${timestamp}`, {
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      },
-      cache: 'no-store'
-    });
-    
-    if (!verifyResponse.ok) {
-      throw new Error('Failed to verify updated staff data');
+    try {
+      // Then send the update to the server
+      const updatedStaff = await updateStaff(updateParams);
+      
+      // Fetch the specific updated staff member directly to ensure we have fresh data
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const timestamp = Date.now();
+      
+      // Wait a moment for the database to fully update
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Use the direct user endpoint which is reliable
+      const verifyResponse = await fetch(`${API_URL}/users/${currentStaff.id}?_=${timestamp}`, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        cache: 'no-store'
+      });
+      
+      if (!verifyResponse.ok) {
+        throw new Error('Failed to verify updated staff data');
+      }
+      
+      const freshStaffData = await verifyResponse.json();
+      
+      // Update the state with the confirmed fresh data from server
+      setStaffMembers(prevStaff => {
+        return prevStaff.map(staff => 
+          staff.id === freshStaffData.id ? freshStaffData : staff
+        );
+      });
+      
+      // If we're updating the current user, update the auth context too
+      if (user && currentStaff.id === user.id) {
+        updateCurrentUser(freshStaffData);
+      }
+      
+      toast({
+        title: 'Success',
+        description: 'Staff member updated successfully',
+      });
+      
+      return freshStaffData;
+    } catch (error) {
+      console.error('Staff update error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update staff member. Please try again.',
+        variant: 'destructive',
+      });
+      
+      // If update failed, reload from database to ensure consistency
+      if (user?.businessId) {
+        loadStaff();
+      }
+      
+      throw error;
     }
-    
-    const freshStaffData = await verifyResponse.json();
-    
-    // Update the state with the confirmed fresh data from server
-    setStaffMembers(prevStaff => {
-      return prevStaff.map(staff => 
-        staff.id === freshStaffData.id ? freshStaffData : staff
-      );
-    });
-    
-    // If we're updating the current user, update the auth context too
-    if (user && currentStaff.id === user.id) {
-      updateCurrentUser(freshStaffData);
-    }
-    
-    return freshStaffData;
   };
 
   // Handle creation of new staff
@@ -294,16 +359,8 @@ export default function StaffPage() {
     try {
       if (currentStaff) {
         await handleUpdateStaff(data, currentStaff);
-        toast({
-          title: 'Success',
-          description: 'Staff member updated successfully',
-        });
       } else {
         await handleCreateStaff(data);
-        toast({
-          title: 'Success',
-          description: 'Staff member created successfully',
-        });
       }
       
       // Close the form
@@ -326,10 +383,14 @@ export default function StaffPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Staff Management</h1>
-        <div className="flex gap-2">
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Header with metrics */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Staff Management</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Manage your team members and their service assignments</p>
+        </div>
+        <div className="flex gap-2 self-end sm:self-auto">
           <Button 
             variant="outline" 
             onClick={() => loadStaff()} 
@@ -363,21 +424,109 @@ export default function StaffPage() {
         </div>
       </div>
 
-      <div className="flex items-center space-x-2 mb-6">
+      {/* Stats cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <Card className="bg-white dark:bg-gray-800">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Staff</p>
+              <h3 className="text-2xl font-bold mt-1">{filteredStaff.length}</h3>
+            </div>
+            <Users className="h-8 w-8 text-pawly-teal" />
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white dark:bg-gray-800">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Services Coverage</p>
+              <h3 className="text-2xl font-bold mt-1">
+                {Math.round((services.length > 0 
+                  ? staffMembers.filter(s => s.serviceIds.length > 0).length / services.length * 100 
+                  : 0))}%
+              </h3>
+            </div>
+            <Scissors className="h-8 w-8 text-pawly-amber" />
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white dark:bg-gray-800">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Verified Staff</p>
+              <h3 className="text-2xl font-bold mt-1">
+                {staffMembers.filter(s => s.isVerified).length}/{staffMembers.length}
+              </h3>
+            </div>
+            <CheckCircle className="h-8 w-8 text-pawly-dark-blue" />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search and filters */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mb-6">
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
           <Input
-            placeholder="Search staff..."
+            placeholder="Search staff by name or email..."
             className="pl-8"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
+        
+        <Select onValueChange={(value) => {
+          setStaffMembers(prev => {
+            return [...prev].sort((a, b) => {
+              if (value === 'name-asc') return a.name.localeCompare(b.name);
+              if (value === 'name-desc') return b.name.localeCompare(a.name);
+              if (value === 'services-asc') return a.serviceIds.length - b.serviceIds.length;
+              if (value === 'services-desc') return b.serviceIds.length - a.serviceIds.length;
+              return 0;
+            });
+          });
+        }}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Sort by..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Sort by</SelectLabel>
+              <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+              <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+              <SelectItem value="services-desc">Most Services</SelectItem>
+              <SelectItem value="services-asc">Fewest Services</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <p>Loading staff members...</p>
+          <div className="flex flex-col items-center">
+            <svg className="animate-spin h-8 w-8 text-pawly-teal mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p className="text-gray-500">Loading staff members...</p>
+          </div>
+        </div>
+      ) : filteredStaff.length === 0 ? (
+        <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
+          <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No staff members found</h3>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">
+            {searchQuery ? 'Try a different search term or' : 'Start by adding your first staff member to the team.'}
+          </p>
+          {searchQuery ? (
+            <Button variant="outline" onClick={() => setSearchQuery('')} className="mr-2">
+              Clear Search
+            </Button>
+          ) : null}
+          <Button onClick={handleAddStaff}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Staff Member
+          </Button>
         </div>
       ) : (
         <StaffTable 

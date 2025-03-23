@@ -59,6 +59,15 @@ export type Business = {
 };
 
 // Extended user type
+export type WorkingHours = {
+  dayOfWeek: number; // 0 = Sunday, 1 = Monday, etc.
+  isWorking: boolean;
+  startTime: string; // '09:00'
+  endTime: string; // '17:00'
+  breakStart?: string; // Optional break time
+  breakEnd?: string;
+};
+
 export type BusinessUser = User & {
   businessId: string;
   businessName: string;
@@ -67,6 +76,7 @@ export type BusinessUser = User & {
   serviceIds: string[]; // IDs of services this staff can provide
   role?: 'admin' | 'staff';  // Role for the user, admin indicates owner/administrator
   phone?: string; // Optional phone number for the staff member
+  workingHours?: WorkingHours[]; // Working hours for each day of the week
 };
 
 // Extend existing types with business ownership

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { BusinessUser, Service } from '@/types';
+import { BusinessUser, Service, WorkingHours } from '@/types';
 import { 
   Table, 
   TableBody, 
@@ -11,7 +11,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, ShieldCheck } from 'lucide-react';
+import { Edit, Trash2, ShieldCheck, Clock, Calendar } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Avatar } from '@/components/ui/avatar-fallback';
@@ -103,13 +103,14 @@ export function StaffTable({ staffMembers, onDelete, onEdit }: StaffTableProps) 
             <TableHead>Email</TableHead>
             <TableHead>Services</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Working Hours</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {staffMembers.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="h-24 text-center">
+              <TableCell colSpan={6} className="h-24 text-center">
                 No staff members found.
               </TableCell>
             </TableRow>
@@ -164,6 +165,63 @@ export function StaffTable({ staffMembers, onDelete, onEdit }: StaffTableProps) 
                     <Badge variant={staff.isVerified ? 'default' : 'secondary'}>
                       {staff.isVerified ? 'Verified' : 'Pending'}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {staff.workingHours?.length ? (
+                      <div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs flex items-center"
+                          onClick={() => {
+                            // Create schedule popover display
+                            toast({
+                              title: `${staff.name}'s Schedule`,
+                              description: (
+                                <div className="space-y-2 mt-2 max-h-[300px] overflow-y-auto">
+                                  {staff.workingHours?.map((hours) => {
+                                    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                                    const day = dayNames[hours.dayOfWeek - 1];
+                                    
+                                    if (!hours.isWorking) {
+                                      return (
+                                        <div key={day} className="text-sm flex items-center py-1 px-2 rounded bg-gray-100">
+                                          <span className="font-medium min-w-[100px]">{day}:</span> 
+                                          <span className="text-gray-500">Day Off</span>
+                                        </div>
+                                      );
+                                    }
+                                    
+                                    return (
+                                      <div key={day} className="text-sm flex flex-col py-1 px-2 rounded bg-blue-50">
+                                        <div className="flex items-center">
+                                          <span className="font-medium min-w-[100px]">{day}:</span>
+                                          <span>{hours.startTime} - {hours.endTime}</span>
+                                        </div>
+                                        {hours.breakStart && (
+                                          <div className="ml-[100px] text-xs text-gray-600 mt-0.5">
+                                            Break: {hours.breakStart} - {hours.breakEnd}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              ),
+                              duration: 10000,
+                            });
+                          }}
+                        >
+                          <Clock className="w-3.5 h-3.5 mr-1.5" />
+                          View Schedule
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-gray-500 text-xs flex items-center">
+                        <Calendar className="w-3 h-3 mr-1 text-gray-400" />
+                        No schedule set
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">

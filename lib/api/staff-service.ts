@@ -1,4 +1,4 @@
-import { BusinessUser, Service } from '@/types';
+import { BusinessUser, Service, WorkingHours } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -11,6 +11,7 @@ export interface CreateStaffParams {
   businessName: string;
   phone?: string; // Add phone field to match BusinessUser type
   avatar?: string; // Add avatar field for consistency
+  workingHours?: WorkingHours[]; // Add working hours
 }
 
 export interface UpdateStaffParams {
@@ -22,6 +23,7 @@ export interface UpdateStaffParams {
   serviceIds?: string[];
   role?: 'admin' | 'staff';
   phone?: string; // Add phone field to match BusinessUser type
+  workingHours?: WorkingHours[]; // Add working hours
 }
 
 // Helper function to add cache prevention headers
