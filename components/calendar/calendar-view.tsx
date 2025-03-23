@@ -119,12 +119,14 @@ export function CalendarView({ onTodayClick }: CalendarViewProps) {
         getBusinessAppointments(user.businessId)
       ]);
       
-      setStaffMembers(staffData);
+      // Filter out admin users from staff list
+      const nonAdminStaff = staffData.filter(staff => staff.role !== 'admin');
+      setStaffMembers(nonAdminStaff);
       setAppointments(appointmentsData);
       
       // Auto-select the first staff member if none is selected
-      if (!selectedStaffId && staffData.length > 0) {
-        setSelectedStaffId(staffData[0].id);
+      if (!selectedStaffId && nonAdminStaff.length > 0) {
+        setSelectedStaffId(nonAdminStaff[0].id);
       }
     } catch (error) {
       console.error('Error fetching calendar data:', error);

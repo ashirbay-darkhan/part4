@@ -106,7 +106,9 @@ export function TodayView({ onBackToWeekView }: TodayViewProps) {
         getBusinessAppointments(user.businessId)
       ]);
       
-      setStaffMembers(staffData);
+      // Filter out admin users from staff list
+      const nonAdminStaff = staffData.filter(staff => staff.role !== 'admin');
+      setStaffMembers(nonAdminStaff);
       setAppointments(appointmentsData);
     } catch (error) {
       console.error('Error fetching calendar data:', error);
