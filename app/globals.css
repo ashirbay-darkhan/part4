@@ -5,108 +5,109 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: monospace;
 }
 
 :root {
-  /* Pawly Colors in OKLCH format */
-  --pawly-light-blue: oklch(0.88 0.06 240.35); /* #C9DDEE */
-  --pawly-dark-blue: oklch(0.4 0.12 255.6); /* #27568B */
-  --pawly-teal: oklch(0.66 0.12 220.3); /* #47A1C4 */
-  --pawly-amber: oklch(0.65 0.12 60.8); /* #B68250 */
+  /* Main Color Palette inspired by Miyazaki design */
+  --color-dark: #090B0B;      /* Dark black background */
+  --color-gold: #E4BC5D;      /* Gold accent */
+  --color-gold-light: #F2CE7E; /* Light gold background */
+  --color-white: #FEFEFE;     /* Off-white */
+  --color-sidebar-bg: #000000; /* Black sidebar background */
 
   /* Base UI Colors */
-  --background: oklch(1 0 0); /* White */
-  --foreground: var(--pawly-dark-blue);
-  --card: oklch(1 0 0); /* White */
-  --card-foreground: var(--pawly-dark-blue);
-  --popover: oklch(1 0 0); /* White */
-  --popover-foreground: var(--pawly-dark-blue);
+  --background: var(--color-white);
+  --foreground: var(--color-dark);
+  --card: var(--color-white);
+  --card-foreground: var(--color-dark);
+  --popover: var(--color-white);
+  --popover-foreground: var(--color-dark);
   
   /* Primary & Secondary */
-  --primary: var(--pawly-dark-blue);
-  --primary-foreground: oklch(1 0 0); /* White */
-  --secondary: var(--pawly-light-blue);
-  --secondary-foreground: var(--pawly-dark-blue);
+  --primary: var(--color-dark);
+  --primary-foreground: var(--color-gold-light);
+  --secondary: var(--color-gold);
+  --secondary-foreground: var(--color-dark);
   
   /* Other UI Colors */
-  --muted: oklch(0.96 0.02 240); /* Light blue-gray */
-  --muted-foreground: oklch(0.55 0.05 257.4); /* Medium gray */
-  --accent: var(--pawly-teal);
-  --accent-foreground: oklch(1 0 0); /* White */
-  --destructive: oklch(0.65 0.27 25); /* Red */
-  --destructive-foreground: oklch(1 0 0); /* White */
+  --muted: rgba(9, 11, 11, 0.08);
+  --muted-foreground: rgba(9, 11, 11, 0.65);
+  --accent: var(--color-gold);
+  --accent-foreground: var(--color-dark);
+  --destructive: #B91C1C;    /* Red */
+  --destructive-foreground: var(--color-white);
   
   /* Borders & Focus */
-  --border: oklch(0.92 0.02 255); /* Light gray-blue */
-  --input: oklch(0.92 0.02 255); /* Light gray-blue */
-  --ring: var(--pawly-teal);
+  --border: rgba(9, 11, 11, 0.15);
+  --input: rgba(9, 11, 11, 0.15);
+  --ring: var(--color-gold);
   
   /* Charts */
-  --chart-1: var(--pawly-dark-blue);
-  --chart-2: var(--pawly-teal);
-  --chart-3: var(--pawly-amber);
-  --chart-4: var(--pawly-light-blue);
-  --chart-5: oklch(0.65 0.05 257); /* Gray */
+  --chart-1: var(--color-dark);
+  --chart-2: var(--color-gold);
+  --chart-3: var(--color-gold-light);
+  --chart-4: rgba(9, 11, 11, 0.75);
+  --chart-5: rgba(9, 11, 11, 0.45);
   
   /* Radius */
-  --radius: 0.625rem;
+  --radius: 0.5rem;
   
   /* Sidebar */
-  --sidebar: var(--pawly-dark-blue);
-  --sidebar-foreground: oklch(1 0 0); /* White */
-  --sidebar-primary: var(--pawly-teal);
-  --sidebar-primary-foreground: oklch(1 0 0); /* White */
-  --sidebar-accent: var(--pawly-light-blue);
-  --sidebar-accent-foreground: var(--pawly-dark-blue);
-  --sidebar-border: oklch(0.4 0.08 255); /* Darker blue */
-  --sidebar-ring: var(--pawly-light-blue);
+  --sidebar: var(--color-sidebar-bg);
+  --sidebar-foreground: var(--color-gold-light);
+  --sidebar-primary: var(--color-gold);
+  --sidebar-primary-foreground: var(--color-dark);
+  --sidebar-accent: var(--color-gold);
+  --sidebar-accent-foreground: var(--color-dark);
+  --sidebar-border: rgba(228, 188, 93, 0.2);
+  --sidebar-ring: var(--color-gold);
 }
 
 .dark {
-  --background: oklch(0.2 0.05 265); /* Dark blue-gray */
-  --foreground: oklch(0.98 0.01 248); /* Off-white */
-  --card: oklch(0.25 0.05 265); /* Dark blue-gray */
-  --card-foreground: oklch(0.98 0.01 248); /* Off-white */
-  --popover: oklch(0.25 0.05 265); /* Dark blue-gray */
-  --popover-foreground: oklch(0.98 0.01 248); /* Off-white */
+  --background: var(--color-dark);
+  --foreground: var(--color-gold-light);
+  --card: rgba(9, 11, 11, 0.85);
+  --card-foreground: var(--color-gold-light);
+  --popover: rgba(9, 11, 11, 0.85);
+  --popover-foreground: var(--color-gold-light);
   
   /* Primary & Secondary */
-  --primary: var(--pawly-teal);
-  --primary-foreground: oklch(1 0 0); /* White */
-  --secondary: var(--pawly-dark-blue);
-  --secondary-foreground: oklch(1 0 0); /* White */
+  --primary: var(--color-gold);
+  --primary-foreground: var(--color-dark);
+  --secondary: rgba(228, 188, 93, 0.25);
+  --secondary-foreground: var(--color-gold);
   
   /* Other UI Colors */
-  --muted: oklch(0.28 0.04 260); /* Dark muted blue */
-  --muted-foreground: oklch(0.7 0.04 257); /* Light gray */
-  --accent: var(--pawly-dark-blue);
-  --accent-foreground: oklch(1 0 0); /* White */
-  --destructive: oklch(0.63 0.25 25); /* Soft red */
-  --destructive-foreground: oklch(1 0 0); /* White */
+  --muted: rgba(242, 206, 126, 0.1);
+  --muted-foreground: rgba(242, 206, 126, 0.65);
+  --accent: var(--color-gold);
+  --accent-foreground: var(--color-dark);
+  --destructive: #991B1B;
+  --destructive-foreground: var(--color-white);
   
   /* Borders & Focus */
-  --border: oklch(0.28 0.04 260); /* Dark blue-gray */
-  --input: oklch(0.28 0.04 260); /* Dark blue-gray */
-  --ring: var(--pawly-teal);
+  --border: rgba(242, 206, 126, 0.2);
+  --input: rgba(242, 206, 126, 0.2);
+  --ring: var(--color-gold);
   
-  /* Charts */
-  --chart-1: var(--pawly-teal);
-  --chart-2: var(--pawly-light-blue);
-  --chart-3: var(--pawly-amber);
-  --chart-4: var(--pawly-dark-blue);
-  --chart-5: oklch(0.7 0.04 257); /* Light gray */
+  /* Charts - Dark Mode */
+  --chart-1: var(--color-gold);
+  --chart-2: var(--color-gold-light);
+  --chart-3: rgba(228, 188, 93, 0.75);
+  --chart-4: rgba(228, 188, 93, 0.5);
+  --chart-5: rgba(228, 188, 93, 0.3);
   
-  /* Sidebar */
-  --sidebar: oklch(0.2 0.05 265); /* Dark blue-gray */
-  --sidebar-foreground: oklch(0.98 0.01 248); /* Off-white */
-  --sidebar-primary: var(--pawly-teal);
-  --sidebar-primary-foreground: oklch(1 0 0); /* White */
-  --sidebar-accent: var(--pawly-dark-blue);
-  --sidebar-accent-foreground: oklch(1 0 0); /* White */
-  --sidebar-border: oklch(0.28 0.04 260); /* Dark blue-gray */
-  --sidebar-ring: var(--pawly-teal);
+  /* Sidebar - Dark Mode */
+  --sidebar: rgba(9, 11, 11, 0.95);
+  --sidebar-foreground: var(--color-gold-light);
+  --sidebar-primary: var(--color-gold);
+  --sidebar-primary-foreground: var(--color-dark);
+  --sidebar-accent: rgba(228, 188, 93, 0.2);
+  --sidebar-accent-foreground: var(--color-gold);
+  --sidebar-border: rgba(228, 188, 93, 0.1);
+  --sidebar-ring: var(--color-gold);
 }
 
 @theme inline {
@@ -134,9 +135,9 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
   --radius-xl: calc(var(--radius) + 4px);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -152,7 +153,70 @@
   * {
     @apply border-border outline-ring/50;
   }
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
+  }
+  
+  h1 {
+    @apply text-3xl md:text-4xl;
+  }
+  
+  h2 {
+    @apply text-2xl md:text-3xl;
+  }
+  
+  h3 {
+    @apply text-xl md:text-2xl;
+  }
+  
+  /* Custom heading styles inspired by the Miyazaki design */
+  .heading-xl {
+    @apply text-4xl md:text-5xl font-bold tracking-tight;
+  }
+  
+  .heading-gold {
+    @apply text-accent font-bold;
+  }
+  
+  /* Responsive font sizes */
+  .text-body {
+    @apply text-base md:text-lg leading-relaxed;
+  }
+  
+  .text-small {
+    @apply text-sm leading-normal;
+  }
+  
+  /* Custom button styles */
+  .btn-gold {
+    @apply bg-accent text-accent-foreground hover:bg-accent/90 transition-colors;
+  }
+  
+  .btn-dark {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-colors;
+  }
+  
+  /* Card styles with subtle border */
+  .card-elegant {
+    @apply bg-card text-card-foreground border border-border/50 rounded-lg shadow-sm;
+  }
+  
+  /* For minimalist dividers */
+  .divider {
+    @apply w-full h-px bg-border my-6;
+  }
+  
+  /* For timeline elements like in the Miyazaki filmography */
+  .timeline-item {
+    @apply relative pl-6 border-l border-accent;
+  }
+  
+  .timeline-dot {
+    @apply absolute left-[-5px] top-1 w-2.5 h-2.5 rounded-full bg-accent;
   }
 }

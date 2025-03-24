@@ -1,77 +1,72 @@
 'use client';
 
-import { lazy, useMemo } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { useMemo } from 'react';
+import { 
+  Users, 
+  Calendar, 
+  LineChart, 
+  Activity,
+  Clock,
+  LucideIcon,
+} from 'lucide-react';
 import { 
   Card, 
   CardContent, 
   CardDescription, 
   CardHeader, 
   CardTitle,
-  CardFooter
 } from '@/components/ui/card';
-import { 
-  Users, 
-  Calendar, 
-  LineChart, 
-  ShoppingBag, 
-  ArrowRight,
-  Activity,
-  Clock,
-  LucideIcon,
-  RefreshCw
-} from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Appointment, Client } from '@/types';
 import { useBusinessData } from '@/lib/hooks/useBusinessData';
 import { getBusinessAppointments, getBusinessClients } from '@/lib/api';
-import { BookingLinkCard } from '@/components/booking/booking-link-card';
-import { 
-  getTodayAppointments, 
-  formatDate, 
-  formatTime 
-} from '@/lib/utils/date-utils';
+import { BookingLinkCard } from '@/components/dashboard/booking-link-card';
+import { getTodayAppointments } from '@/lib/utils/date-utils';
+import { cn } from '@/lib/utils';
 
-// Lazy load components that are not immediately visible
-const WeekCalendarView = lazy(() => 
-  import('@/components/calendar/week-view').then(module => ({ 
-    default: module.WeekCalendarView 
-  }))
-);
-
-// Create the dashboard skeleton component inline since we'll create proper file in next PR
+// Create the dashboard skeleton component
 const DashboardSkeleton = () => (
   <div className="space-y-6">
     <div>
-      <div className="h-8 w-64 bg-gray-200 rounded animate-pulse mb-2"></div>
-      <div className="h-4 w-48 bg-gray-100 rounded animate-pulse"></div>
+      <div className="h-8 w-64 bg-accent/5 rounded animate-pulse mb-2"></div>
+      <div className="h-4 w-48 bg-accent/5 rounded animate-pulse"></div>
     </div>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
       {[1, 2, 3, 4].map(i => (
-        <Card key={i}>
+        <Card key={i} className="border border-accent/10">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium animate-pulse bg-slate-200 h-4 w-24"></CardTitle>
+            <CardTitle className="text-sm font-medium animate-pulse bg-accent/5 h-4 w-24"></CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="animate-pulse bg-slate-200 h-8 w-16 mb-2"></div>
-            <p className="animate-pulse bg-slate-100 h-3 w-32"></p>
+            <div className="animate-pulse bg-accent/5 h-8 w-16 mb-2"></div>
+            <p className="animate-pulse bg-accent/5 h-3 w-32"></p>
           </CardContent>
         </Card>
       ))}
     </div>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Card className="col-span-1">
+      <Card className="col-span-1 border border-accent/10">
         <CardHeader>
-          <CardTitle className="animate-pulse bg-slate-200 h-6 w-36"></CardTitle>
-          <CardDescription className="animate-pulse bg-slate-100 h-4 w-64"></CardDescription>
+          <CardTitle className="animate-pulse bg-accent/5 h-6 w-36"></CardTitle>
+          <CardDescription className="animate-pulse bg-accent/5 h-4 w-64"></CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {[1, 2, 3, 4, 5].map(i => (
             <div key={i} className="flex items-center justify-between">
-              <div className="animate-pulse bg-slate-200 h-10 w-48"></div>
-              <div className="animate-pulse bg-slate-200 h-6 w-16"></div>
+              <div className="animate-pulse bg-accent/5 h-10 w-48"></div>
+              <div className="animate-pulse bg-accent/5 h-6 w-16"></div>
             </div>
           ))}
+        </CardContent>
+      </Card>
+      <Card className="col-span-1 border border-accent/10">
+        <CardHeader>
+          <CardTitle className="animate-pulse bg-accent/5 h-6 w-36"></CardTitle>
+          <CardDescription className="animate-pulse bg-accent/5 h-4 w-64"></CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="animate-pulse bg-accent/5 h-10 w-full"></div>
+          <div className="animate-pulse bg-accent/5 h-10 w-full"></div>
         </CardContent>
       </Card>
     </div>
@@ -84,20 +79,28 @@ interface StatCardProps {
   value: string | number;
   subtitle: string;
   icon: LucideIcon;
+  trend?: 'up' | 'down' | 'neutral';
 }
 
 // Extract stat card into reusable component
-const StatCard = ({ title, value, subtitle, icon: Icon }: StatCardProps) => (
+const StatCard = ({ title, value, subtitle, icon: Icon, trend = 'neutral' }: StatCardProps) => (
   <Card>
     <CardHeader className="flex flex-row items-center justify-between pb-2">
-      <CardTitle className="text-sm font-medium">
+      <CardTitle className="text-sm font-medium text-muted-foreground">
         {title}
       </CardTitle>
-      <Icon className="h-4 w-4 text-slate-500" />
+      <div className="h-8 w-8 rounded-md bg-accent/10 flex items-center justify-center">
+        <Icon className="h-4 w-4 text-accent" />
+      </div>
     </CardHeader>
     <CardContent>
       <div className="text-2xl font-bold">{value}</div>
-      <p className="text-xs text-slate-500">
+      <p className={cn(
+        "text-xs mt-1 flex items-center gap-1",
+        trend === 'up' ? 'text-emerald-500' : 
+        trend === 'down' ? 'text-rose-500' : 
+        'text-muted-foreground'
+      )}>
         {subtitle}
       </p>
     </CardContent>
@@ -120,7 +123,7 @@ const RecentBookings = ({ appointments, clients }: RecentBookingsProps) => {
   }, [appointments]);
 
   return (
-    <Card className="col-span-1">
+    <Card>
       <CardHeader>
         <CardTitle>Recent Bookings</CardTitle>
         <CardDescription>
@@ -135,17 +138,17 @@ const RecentBookings = ({ appointments, clients }: RecentBookingsProps) => {
               const apptDate = new Date(appointment.date);
               
               return (
-                <div key={appointment.id} className="flex items-center justify-between">
+                <div key={appointment.id} className="flex items-center justify-between group">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center">
-                      <span className="text-xs font-medium">
-                        {apptClient?.name.charAt(0) || '?'}
+                    <div className="w-9 h-9 rounded-md bg-accent/10 border border-accent/20 flex items-center justify-center text-accent group-hover:bg-accent/20 transition-colors">
+                      <span className="text-sm font-medium">
+                        {apptClient?.name.charAt(0) || 'C'}
                       </span>
                     </div>
                     <div>
-                      <p className="text-sm font-medium">{apptClient?.name || 'Unknown Client'}</p>
-                      <p className="text-xs text-slate-500">
-                        {formatDate(apptDate, { month: 'short', day: 'numeric' })} • {formatTime(appointment.startTime)}
+                      <p className="text-sm font-medium">{apptClient?.name || 'Client'}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Мар {apptDate.getDate()} • {appointment.startTime.replace(/^0+/, '')} AM
                       </p>
                     </div>
                   </div>
@@ -157,63 +160,17 @@ const RecentBookings = ({ appointments, clients }: RecentBookingsProps) => {
             })
           ) : (
             <div className="flex flex-col items-center justify-center py-6 text-center">
-              <Calendar className="h-8 w-8 text-slate-400 mb-2" />
-              <p className="text-sm text-slate-500">No recent bookings found</p>
+              <div className="w-12 h-12 rounded-md bg-accent/5 flex items-center justify-center mb-3">
+                <Calendar className="h-6 w-6 text-accent/70" />
+              </div>
+              <p className="text-sm text-muted-foreground">No recent bookings found</p>
             </div>
           )}
         </div>
       </CardContent>
-      <CardFooter>
-        <Button variant="ghost" className="w-full" asChild>
-          <Link href="/staff">
-            View all
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
-      </CardFooter>
     </Card>
   );
 };
-
-// Extract quick actions to separate component
-const QuickActions = () => (
-  <Card className="col-span-1">
-    <CardHeader>
-      <CardTitle>Quick Actions</CardTitle>
-      <CardDescription>
-        Commonly used functions and features
-      </CardDescription>
-    </CardHeader>
-    <CardContent>
-      <div className="grid grid-cols-2 gap-4">
-        <Button variant="outline" className="h-24 flex flex-col" asChild>
-          <Link href="/calendar">
-            <Calendar className="h-6 w-6 mb-2" />
-            <span>View Calendar</span>
-          </Link>
-        </Button>
-        <Button variant="outline" className="h-24 flex flex-col" asChild>
-          <Link href="/staff">
-            <Users className="h-6 w-6 mb-2" />
-            <span>Manage Staff</span>
-          </Link>
-        </Button>
-        <Button variant="outline" className="h-24 flex flex-col" asChild>
-          <Link href="/analytics">
-            <LineChart className="h-6 w-6 mb-2" />
-            <span>Analytics</span>
-          </Link>
-        </Button>
-        <Button variant="outline" className="h-24 flex flex-col" asChild>
-          <Link href="/services">
-            <ShoppingBag className="h-6 w-6 mb-2" />
-            <span>Services</span>
-          </Link>
-        </Button>
-      </div>
-    </CardContent>
-  </Card>
-);
 
 export default function DashboardPage() {
   // Use our custom hook with proper error handling and caching
@@ -222,7 +179,6 @@ export default function DashboardPage() {
     isLoading: isLoadingAppointments, 
     error: appointmentsError, 
     refetch: refetchAppointments,
-    isStale: isAppointmentsStale
   } = useBusinessData<Appointment>(getBusinessAppointments, {
     cacheKey: 'dashboardAppointments',
     cacheDuration: 2 * 60 * 1000 // 2 minutes cache for dashboard
@@ -233,7 +189,6 @@ export default function DashboardPage() {
     isLoading: isLoadingClients, 
     error: clientsError,
     refetch: refetchClients,
-    isStale: isClientsStale
   } = useBusinessData<Client>(getBusinessClients, {
     cacheKey: 'dashboardClients',
     cacheDuration: 2 * 60 * 1000 // 2 minutes cache for dashboard
@@ -241,7 +196,6 @@ export default function DashboardPage() {
   
   const isLoading = isLoadingAppointments || isLoadingClients;
   const hasError = appointmentsError || clientsError;
-  const isStale = isAppointmentsStale || isClientsStale;
   
   // Memoize expensive calculations
   const today = useMemo(() => new Date(), []);
@@ -277,12 +231,6 @@ export default function DashboardPage() {
       })[0];
   }, [todayAppointments]);
   
-  // Format the date once and memoize it
-  const formattedDate = useMemo(() => 
-    formatDate(today),
-    [today]
-  );
-  
   // Calculate monthly revenue
   const currentMonthRevenue = useMemo(() => {
     const currentMonth = today.getMonth();
@@ -310,7 +258,7 @@ export default function DashboardPage() {
     return (
       <div className="flex items-center justify-center h-[60vh] flex-col gap-4">
         <div className="text-destructive text-xl">Error loading dashboard data</div>
-        <Button onClick={handleRefresh}>
+        <Button onClick={handleRefresh} variant="default" className="bg-accent hover:bg-accent/90">
           Try Again
         </Button>
       </div>
@@ -322,13 +270,21 @@ export default function DashboardPage() {
   }
   
   return (
-    <div className="space-y-6">      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-8">
+      <div className="flex flex-col space-y-1.5">
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Welcome back! Here's what's happening with your business today.
+        </p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard 
           title="Total Appointments" 
           value={appointments.length} 
           subtitle="+2.5% from last month" 
           icon={Calendar} 
+          trend="up"
         />
         
         <StatCard 
@@ -336,15 +292,19 @@ export default function DashboardPage() {
           value={clients.length} 
           subtitle="+12.3% from last month" 
           icon={Users} 
+          trend="up"
         />
         
         <StatCard 
           title="Today's Appointments" 
           value={todayAppointments.length} 
-          subtitle={nextAppointment 
-            ? `Next at ${formatTime(nextAppointment.startTime)}` 
-            : 'No more appointments today'} 
+          subtitle={todayAppointments.length === 0 
+            ? "No more appointments today" 
+            : nextAppointment 
+              ? `Next at ${nextAppointment.startTime}` 
+              : 'No more appointments today'} 
           icon={Clock} 
+          trend="neutral"
         />
         
         <StatCard 
@@ -352,15 +312,13 @@ export default function DashboardPage() {
           value={`₸ ${currentMonthRevenue.toLocaleString()}`} 
           subtitle="+18.1% from last month" 
           icon={Activity} 
+          trend="up"
         />
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <RecentBookings appointments={appointments} clients={clients} />
-        <div className="mb-6">
-          <BookingLinkCard />
-        </div>
-        <QuickActions />
+        <BookingLinkCard />
       </div>
     </div>
   );

@@ -82,9 +82,12 @@ export default function LoginPage() {
   };
 
   return (
-    <Card className="w-full max-w-md mx-4 shadow-lg border-0">
-      <CardHeader className="space-y-1 pb-6">
-        <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
+    <Card className="w-full max-w-md mx-4 border-border/30 shadow-lg overflow-hidden">
+      {/* Gold top bar */}
+      <div className="h-2 bg-accent w-full"></div>
+      
+      <CardHeader className="space-y-3 pt-8 pb-6">
+        <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
         <CardDescription className="text-center">
           Enter your credentials to access your account
         </CardDescription>
@@ -92,10 +95,10 @@ export default function LoginPage() {
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-5">
             {/* Display general error message */}
             {loginError && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center gap-2 text-red-600">
+              <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3 flex items-center gap-2 text-destructive">
                 <AlertCircle className="h-4 w-4" />
                 <p className="text-sm">{loginError}</p>
               </div>
@@ -107,7 +110,7 @@ export default function LoginPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel className="text-sm font-medium">Email</FormLabel>
                   <div className="relative">
                     <div className="absolute left-3 top-2.5 text-muted-foreground">
                       <Mail className="h-4 w-4" />
@@ -116,7 +119,7 @@ export default function LoginPage() {
                       <Input
                         type="email"
                         placeholder="name@example.com"
-                        className="pl-9"
+                        className="pl-9 h-11 bg-muted/50"
                         {...field}
                       />
                     </FormControl>
@@ -133,10 +136,10 @@ export default function LoginPage() {
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-center justify-between mb-1">
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel className="text-sm font-medium">Password</FormLabel>
                     <Link
                       href="#"
-                      className="text-xs text-primary hover:underline font-medium"
+                      className="text-xs text-accent hover:underline font-medium"
                     >
                       Forgot password?
                     </Link>
@@ -149,7 +152,7 @@ export default function LoginPage() {
                       <Input
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
-                        className="pl-9"
+                        className="pl-9 h-11 bg-muted/50"
                         {...field}
                       />
                     </FormControl>
@@ -182,7 +185,7 @@ export default function LoginPage() {
             </div>
             
             {/* Demo credentials info */}
-            <div className="rounded-md bg-muted p-3 text-sm">
+            <div className="rounded-md bg-muted p-4 text-sm">
               <p className="font-medium text-muted-foreground mb-1">Demo credentials:</p>
               <p className="text-xs flex items-center gap-1">
                 <Mail className="h-3 w-3" /> admin@example.com
@@ -193,19 +196,20 @@ export default function LoginPage() {
             </div>
           </CardContent>
           
-          <CardFooter className="flex flex-col space-y-4">
+          <CardFooter className="flex flex-col space-y-4 pt-4 pb-8">
             <Button
               type="submit"
               className="w-full"
               disabled={isLoading}
               size="lg"
+              variant="gold"
             >
               {isLoading ? 'Signing in...' : 'Sign in'}
             </Button>
             
             <p className="text-sm text-center text-muted-foreground">
               Don't have an account?{' '}
-              <Link href="/register" className="text-primary hover:underline font-medium">
+              <Link href="/register" className="text-accent hover:underline font-medium">
                 Sign up
               </Link>
             </p>
