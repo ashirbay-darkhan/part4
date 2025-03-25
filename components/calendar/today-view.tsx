@@ -79,11 +79,12 @@ const calculateAppointmentStyle = (appointment: Appointment) => {
 
 interface TodayViewProps {
   onBackToWeekView?: () => void;
+  selectedDate?: Date;
 }
 
-export function TodayView({ onBackToWeekView }: TodayViewProps) {
+export function TodayView({ onBackToWeekView, selectedDate }: TodayViewProps) {
   const { user } = useAuth();
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(selectedDate || new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [staffMembers, setStaffMembers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -121,6 +122,17 @@ export function TodayView({ onBackToWeekView }: TodayViewProps) {
   useEffect(() => {
     fetchData();
   }, [fetchData, currentDate]);
+  
+  // Update currentDate when selectedDate changes
+  useEffect(() => {
+    if (selectedDate) {
+      // Create a new date to avoid timezone issues
+      const localDate = new Date(selectedDate);
+      // Set to noon to avoid any day shifting from timezone
+      localDate.setHours(12, 0, 0, 0);
+      setCurrentDate(localDate);
+    }
+  }, [selectedDate]);
   
   // Filter appointments for the current date
   const todayAppointments = useMemo(() => 
@@ -215,7 +227,7 @@ export function TodayView({ onBackToWeekView }: TodayViewProps) {
   
   // Staff columns header and scrollable content area
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-white">
+    <div className="flex flex-col h-full overflow-hidden bg-white">
       {/* Calendar header with controls - fixed at top */}
       <div className="px-2 py-1 border-b flex items-center justify-between sticky top-0 z-30 bg-white">
         <div className="flex items-center gap-2">

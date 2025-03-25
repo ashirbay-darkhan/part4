@@ -1,16 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Menu, Search, Bell, Moon, Sun } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Menu, Search, Bell, Moon, Sun, LogOut, Settings, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/lib/auth/authContext';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 export function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
-  const { user } = useAuth();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const notificationsRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const { user, logout } = useAuth();
+  const router = useRouter();
 
   // Function to toggle theme
   const toggleTheme = () => {
@@ -27,6 +33,29 @@ export function Header() {
     // Save the setting in localStorage
     localStorage.setItem('darkMode', newDarkMode ? 'true' : 'false');
   };
+
+  // Handle logout
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+        setNotificationsOpen(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // When mounting the component, check saved theme
   useEffect(() => {
@@ -45,7 +74,7 @@ export function Header() {
   }, []);
 
   return (
-    <header className="h-16 bg-background border-b border-accent/10 flex items-center px-6 justify-between z-10 relative">
+    <header className="h-16 bg-background border-b border-accent/10 flex items-center px-6 justify-between z-20 relative">
       {/* Subtle gold accent line at the bottom */}
       <div className="absolute bottom-0 left-0 h-[1px] w-full bg-accent/30"></div>
       
@@ -93,22 +122,92 @@ export function Header() {
           )}
         </Button>
         
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-muted-foreground hover:text-foreground hover:bg-accent/10 relative transition-colors"
-        >
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-1 right-1.5 w-2 h-2 bg-accent rounded-full ring-2 ring-background"></span>
-        </Button>
+        {/* Notifications dropdown */}
+        <div className="relative" ref={notificationsRef}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setNotificationsOpen(!notificationsOpen)}
+            className="text-muted-foreground hover:text-foreground hover:bg-accent/10 relative transition-colors"
+          >
+            <Bell className="h-5 w-5" />
+            <span className="absolute top-1 right-1.5 w-2 h-2 bg-accent rounded-full ring-2 ring-background"></span>
+          </Button>
+          
+          {notificationsOpen && (
+            <div className="absolute right-0 mt-2 w-72 bg-background border border-accent/20 rounded-md shadow-lg py-1 z-[100]">
+              <div className="px-4 py-2 border-b border-accent/10">
+                <h3 className="text-sm font-medium">Notifications</h3>
+              </div>
+              <div className="max-h-96 overflow-y-auto">
+                <div className="px-4 py-3 hover:bg-accent/5 border-b border-accent/10">
+                  <p className="text-sm">New appointment booked</p>
+                  <p className="text-xs text-muted-foreground mt-1">10 minutes ago</p>
+                </div>
+                <div className="px-4 py-3 hover:bg-accent/5 border-b border-accent/10">
+                  <p className="text-sm">Appointment cancelled</p>
+                  <p className="text-xs text-muted-foreground mt-1">2 hours ago</p>
+                </div>
+                <div className="px-4 py-3 hover:bg-accent/5">
+                  <p className="text-sm">New client registered</p>
+                  <p className="text-xs text-muted-foreground mt-1">Yesterday</p>
+                </div>
+              </div>
+              <div className="px-4 py-2 border-t border-accent/10">
+                <a href="#" className="text-xs text-accent hover:underline block text-center">
+                  View all notifications
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
         
-        <div className={cn(
-          "h-9 w-9 rounded-md bg-accent/10 border border-accent/30 flex items-center justify-center",
-          "transition-all hover:bg-accent/20 cursor-pointer"
-        )}>
-          <span className="text-sm font-medium text-accent">
-            {user?.name?.charAt(0) || 'R'}
-          </span>
+        {/* User profile dropdown */}
+        <div className="relative" ref={userMenuRef}>
+          <div 
+            onClick={() => setUserMenuOpen(!userMenuOpen)}
+            className={cn(
+              "h-9 w-9 rounded-md bg-accent/10 border border-accent/30 flex items-center justify-center",
+              "transition-all hover:bg-accent/20 cursor-pointer"
+            )}
+          >
+            <span className="text-sm font-medium text-accent">
+              {user?.name?.charAt(0) || 'R'}
+            </span>
+          </div>
+          
+          {userMenuOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-background border border-accent/20 rounded-md shadow-lg py-1 z-[100]">
+              <div className="px-4 py-2 border-b border-accent/10">
+                <p className="text-sm font-medium truncate">{user?.email || 'richard@gmail.com'}</p>
+                <p className="text-xs text-muted-foreground mt-0.5 truncate">{user?.businessName || 'Pied Piper'}</p>
+              </div>
+              
+              <a 
+                href="/profile" 
+                className="px-4 py-2 text-sm flex items-center gap-3 hover:bg-accent/5 transition-colors"
+              >
+                <User className="h-4 w-4 text-accent/70" />
+                <span>Profile</span>
+              </a>
+              
+              <a 
+                href="/settings" 
+                className="px-4 py-2 text-sm flex items-center gap-3 hover:bg-accent/5 transition-colors"
+              >
+                <Settings className="h-4 w-4 text-accent/70" />
+                <span>Settings</span>
+              </a>
+              
+              <button 
+                onClick={handleLogout}
+                className="w-full px-4 py-2 text-sm flex items-center gap-3 hover:bg-accent/5 transition-colors text-left border-t border-accent/10 mt-1"
+              >
+                <LogOut className="h-4 w-4 text-accent/70" />
+                <span>Logout</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

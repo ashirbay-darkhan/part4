@@ -85,16 +85,28 @@ const calculateAppointmentStyle = (appointment: Appointment) => {
 
 interface CalendarViewProps {
   onTodayClick?: () => void;
+  selectedDate?: Date;
 }
 
-export function CalendarView({ onTodayClick }: CalendarViewProps) {
+export function CalendarView({ onTodayClick, selectedDate }: CalendarViewProps) {
   const { user } = useAuth();
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(selectedDate || new Date());
   const [selectedStaffId, setSelectedStaffId] = useState<string>('');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [staffMembers, setStaffMembers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Update currentDate when selectedDate changes
+  useEffect(() => {
+    if (selectedDate) {
+      // Create a new date to avoid timezone issues
+      const localDate = new Date(selectedDate);
+      // Set to noon to avoid any day shifting from timezone
+      localDate.setHours(12, 0, 0, 0);
+      setCurrentDate(localDate);
+    }
+  }, [selectedDate]);
   
   // Calculate week days
   const weekDays = useMemo(() => {
@@ -237,7 +249,7 @@ export function CalendarView({ onTodayClick }: CalendarViewProps) {
   }
   
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-white">
+    <div className="flex flex-col h-full overflow-hidden bg-white">
       {/* Calendar header with controls - fixed at top */}
       <div className="px-2 py-1 border-b flex items-center justify-between gap-2 sticky top-0 z-30 bg-white">
         <div className="flex items-center gap-2">

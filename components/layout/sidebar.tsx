@@ -81,6 +81,7 @@ interface MiniCalendarProps {
 const MiniCalendar = ({ onDateSelect }: MiniCalendarProps) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [monthYear, setMonthYear] = useState({ month: currentDate.getMonth(), year: currentDate.getFullYear() });
   
   // Get current month and year
   const month = currentDate.getMonth();
@@ -139,11 +140,24 @@ const MiniCalendar = ({ onDateSelect }: MiniCalendarProps) => {
     setCurrentDate(new Date(year, month + 1, 1));
   };
   
-  // Function to handle date click
+  // Handle clicking on a specific day
   const handleDateClick = (year: number, month: number, day: number) => {
-    const newDate = new Date(year, month, day);
-    setSelectedDate(newDate);
-    onDateSelect(newDate);
+    // Create date for the selected day (month is 0-indexed in JavaScript)
+    const date = new Date(year, month, day);
+    
+    // Format as YYYY-MM-DD to avoid timezone issues
+    const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    
+    // Set the selected date
+    setSelectedDate(date);
+    
+    // Call the provided callback with the selected date
+    onDateSelect(date);
+    
+    // Update the displayed month/year if the selected date is in a different month
+    if (month !== currentDate.getMonth() || year !== currentDate.getFullYear()) {
+      setCurrentDate(new Date(year, month, 1));
+    }
   };
   
   // Check if a date is today
@@ -290,8 +304,10 @@ export function Sidebar() {
 
   // Handle date selection from mini calendar
   const handleDateSelect = (date: Date) => {
-    // Format the date parameter as needed for your API
-    const formattedDate = date.toISOString().split('T')[0]; // e.g., "2025-03-25"
+    // Format the date parameter as YYYY-MM-DD
+    const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    
+    // Navigate to calendar with selected date
     router.push(`/calendar?date=${formattedDate}`);
   };
 

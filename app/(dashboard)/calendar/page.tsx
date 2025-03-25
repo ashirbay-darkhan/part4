@@ -8,8 +8,8 @@ export const metadata: Metadata = {
 
 export default function CalendarPage() {
   return (
-    <div className="h-[calc(100vh-60px)] w-full overflow-hidden">
+    <div className="fixed top-16 bottom-0 left-52 right-0 bg-white z-10">
       <CalendarClient />
     </div>
   );
-} 
+}
