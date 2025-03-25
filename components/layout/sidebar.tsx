@@ -45,7 +45,7 @@ const SidebarItem = ({
       href={href}
       onClick={onClick}
       className={cn(
-        'flex items-center justify-between py-3 px-5 text-sm transition-all duration-200 relative',
+        'flex items-center justify-between py-3 px-4 text-sm transition-all duration-200 relative',
         isActive
           ? 'bg-sidebar-primary text-sidebar-primary-foreground'
           : 'hover:bg-sidebar-primary/10 text-sidebar-foreground/90'
@@ -171,21 +171,21 @@ const MiniCalendar = ({ onDateSelect }: MiniCalendarProps) => {
   };
   
   return (
-    <div className="px-5 pb-5 pt-4 border-b border-sidebar-border/20 bg-transparent">
-      <div className="flex justify-between items-center mb-4">
-        <div className="text-sidebar-primary font-medium capitalize">
+    <div className="px-4 pb-3 pt-3 border-b border-sidebar-border/20 bg-transparent">
+      <div className="flex justify-between items-center mb-3">
+        <div className="text-sidebar-primary text-base font-medium capitalize">
           {capitalize(getMonthNameInLanguage(currentDate))} {year}
         </div>
-        <div className="flex space-x-1">
+        <div className="flex space-x-1.5">
           <button 
             onClick={goToPrevMonth}
-            className="p-1.5 hover:bg-sidebar-accent/15 rounded-full transition-colors text-sidebar-foreground/70 hover:text-sidebar-foreground"
+            className="p-1 hover:bg-sidebar-accent/15 rounded-full transition-colors text-sidebar-foreground/70 hover:text-sidebar-foreground"
           >
             <ChevronLeft className="h-3.5 w-3.5" />
           </button>
           <button 
             onClick={goToNextMonth}
-            className="p-1.5 hover:bg-sidebar-accent/15 rounded-full transition-colors text-sidebar-foreground/70 hover:text-sidebar-foreground"
+            className="p-1 hover:bg-sidebar-accent/15 rounded-full transition-colors text-sidebar-foreground/70 hover:text-sidebar-foreground"
           >
             <ChevronRight className="h-3.5 w-3.5" />
           </button>
@@ -203,7 +203,7 @@ const MiniCalendar = ({ onDateSelect }: MiniCalendarProps) => {
         <div className="text-center">сб</div>
       </div>
       
-      {/* Calendar grid */}
+      {/* Calendar grid - modify button sizes */}
       <div className="grid grid-cols-7 gap-1">
         {/* Previous month days */}
         {Array.from({ length: daysFromPrevMonth }).map((_, index) => {
@@ -306,29 +306,34 @@ export function Sidebar() {
       )}
 
       {/* Sidebar */}
-      <div className={`
-        fixed top-0 bottom-0 left-0 z-50 w-64 bg-black
-        transform transition-transform duration-300 ease-in-out shadow-xl
-        md:relative md:translate-x-0 flex flex-col
-        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-      `}>
-        {/* Top scrollable section - add padding at bottom to prevent content being hidden by fixed footer */}
-        <div className="flex flex-col overflow-y-auto pb-[60px]">
+      <div 
+        className={`
+          fixed top-0 left-0 z-50 w-52 bg-black
+          transform transition-transform duration-300 ease-in-out shadow-xl
+          md:relative md:translate-x-0
+          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `} 
+        style={{ height: '100vh', position: 'fixed' }}
+      >
+        {/* Inner content container with flex layout */}
+        <div className="flex flex-col h-full">
           {/* Logo/Title Section */}
-          <div className="px-5 pt-5 pb-4 flex items-center justify-between">
-            <h1 className="text-xl font-medium text-sidebar-primary truncate">
+          <div className="px-4 pt-5 pb-4 flex items-center justify-between">
+            <h1 className="text-lg font-medium text-sidebar-primary truncate">
               {user?.businessName || 'Pied piper'}
             </h1>
-            <div className="h-8 w-8 rounded-full bg-sidebar-primary/10 flex items-center justify-center">
-              <span className="text-sidebar-primary text-xs font-medium">Pro</span>
+            <div className="h-7 w-7 rounded-full bg-sidebar-primary/10 flex items-center justify-center">
+              <span className="text-xs font-medium text-sidebar-primary">Pro</span>
             </div>
           </div>
           
           {/* Mini Calendar */}
-          <MiniCalendar onDateSelect={handleDateSelect} />
+          <div className="mb-2">
+            <MiniCalendar onDateSelect={handleDateSelect} />
+          </div>
 
-          {/* Navigation Menu */}
-          <div className="pt-2">
+          {/* Navigation Menu - Scrollable */}
+          <div className="flex-grow overflow-y-auto pt-1">
             <SidebarItem
               href="/dashboard"
               icon={<LayoutDashboard className="h-5 w-5" />}
@@ -374,26 +379,26 @@ export function Sidebar() {
               isActive={pathname.includes('/analytics')}
             />
           </div>
-        </div>
 
-        {/* User Profile - Fixed at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 border-t border-sidebar-border/20 px-5 py-3.5 bg-black flex-shrink-0">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-full bg-sidebar-primary/10 border border-sidebar-border/20 flex items-center justify-center">
-              <span className="text-sm font-medium text-sidebar-foreground">
-                N
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-sidebar-primary/80 text-sm truncate">richard@gmail.com</div>
-            </div>
-            <div className="flex items-center">
-              <button
-                onClick={handleLogout}
-                className="text-sidebar-primary/80 hover:text-sidebar-primary transition-colors"
-              >
-                <LogOut className="h-5 w-5" />
-              </button>
+          {/* User Profile - Fixed at bottom */}
+          <div className="border-t border-sidebar-border/20 px-4 py-3.5 bg-black mt-1">
+            <div className="flex items-center space-x-3">
+              <div className="w-7 h-7 rounded-full bg-sidebar-primary/10 border border-sidebar-border/20 flex items-center justify-center">
+                <span className="text-xs font-medium text-sidebar-foreground">
+                  {user?.email?.[0]?.toUpperCase() || 'R'}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sidebar-primary/80 text-xs truncate">{user?.email || 'richard@gmail.com'}</div>
+              </div>
+              <div className="flex items-center">
+                <button
+                  onClick={handleLogout}
+                  className="text-sidebar-primary/80 hover:text-sidebar-primary transition-colors"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

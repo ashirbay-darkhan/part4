@@ -45,7 +45,7 @@ export function Header() {
   }, []);
 
   return (
-    <header className="h-16 bg-background border-b border-accent/10 flex items-center px-6 justify-between sticky top-0 z-10 relative">
+    <header className="h-16 bg-background border-b border-accent/10 flex items-center px-6 justify-between z-10 relative">
       {/* Subtle gold accent line at the bottom */}
       <div className="absolute bottom-0 left-0 h-[1px] w-full bg-accent/30"></div>
       
