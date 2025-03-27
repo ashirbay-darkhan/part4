@@ -16,7 +16,7 @@ export type Service = {
   businessId: string; // Required field, ensuring it's always present and a string
 };
 
-export type AppointmentStatus = 'Pending' | 'Arrived' | 'No-Show' | 'Confirmed';
+export type AppointmentStatus = 'Pending' | 'Arrived' | 'No-Show' | 'Confirmed' | 'Completed' | 'Cancelled';
 
 export type Appointment = {
   id: string;

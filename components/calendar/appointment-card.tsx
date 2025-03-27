@@ -13,8 +13,8 @@ import {
   User, 
   Phone, 
   Calendar, 
-  CheckCircle, 
-  XCircle, 
+  CheckCircle,
+  XCircle,
   AlertCircle,
   Clock3,
   LoaderCircle
@@ -41,6 +41,13 @@ export function AppointmentCard({ appointment, onClick, onStatusChange, style }:
   const [client, setClient] = useState<Client | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  // Local state to track the appointment so we can update it when it changes
+  const [localAppointment, setLocalAppointment] = useState<Appointment>(appointment);
+  
+  // Update local state when the appointment prop changes
+  useEffect(() => {
+    setLocalAppointment(appointment);
+  }, [appointment]);
   
   // Calculate duration in a memoized way
   const duration = useMemo(() => {
@@ -92,42 +99,42 @@ export function AppointmentCard({ appointment, onClick, onStatusChange, style }:
   
   // Status configuration with better styling and proper icons
   const statusConfig = useMemo(() => ({
-    'Pending': { 
+      'Pending': {
       color: 'bg-amber-500', 
       headerColor: 'bg-amber-600', 
       icon: Clock3, 
       text: 'text-amber-900',
       borderColor: 'border-amber-300'
-    },
-    'Arrived': { 
+      },
+      'Arrived': {
       color: 'bg-emerald-500', 
       headerColor: 'bg-emerald-600', 
       icon: CheckCircle,
       text: 'text-emerald-900',
       borderColor: 'border-emerald-300'
-    },
-    'No-Show': { 
+      },
+      'No-Show': {
       color: 'bg-rose-500', 
       headerColor: 'bg-rose-600', 
       icon: XCircle,
       text: 'text-rose-900',
       borderColor: 'border-rose-300'
-    },
-    'Confirmed': { 
+      },
+      'Confirmed': {
       color: 'bg-blue-500', 
       headerColor: 'bg-blue-600', 
       icon: CheckCircle,
       text: 'text-blue-900',
       borderColor: 'border-blue-300'
-    },
-    'Completed': { 
+      },
+      'Completed': {
       color: 'bg-violet-500', 
       headerColor: 'bg-violet-600', 
       icon: CheckCircle,
       text: 'text-violet-900',
       borderColor: 'border-violet-300'
-    },
-    'Cancelled': { 
+      },
+      'Cancelled': {
       color: 'bg-gray-500', 
       headerColor: 'bg-gray-600', 
       icon: XCircle,
@@ -136,11 +143,27 @@ export function AppointmentCard({ appointment, onClick, onStatusChange, style }:
     }
   }), []);
   
-  // Get the current appointment's status configuration
+  // Handle status changes from the detail view
+  const handleStatusChange = useCallback(async () => {
+    try {
+      // This will fetch the updated appointment from the server
+      if (onStatusChange) {
+        await onStatusChange();
+      }
+      
+      // Force a re-render by updating the local state
+      // This should be called when the appointment is closed or status changes
+      setLocalAppointment({...localAppointment}); 
+    } catch (error) {
+      console.error('Error handling status change:', error);
+    }
+  }, [localAppointment, onStatusChange]);
+  
+  // Get the current appointment's status configuration - use localAppointment instead of the prop
   const currentStatusConfig = useMemo(() => 
-    statusConfig[appointment.status as keyof typeof statusConfig] || 
+    statusConfig[localAppointment.status as keyof typeof statusConfig] || 
     { color: 'bg-gray-500', headerColor: 'bg-gray-600', icon: AlertCircle, text: 'text-gray-700', borderColor: 'border-gray-300' },
-  [statusConfig, appointment.status]);
+  [statusConfig, localAppointment.status]);
   
   // Handle opening the dialog with useCallback for optimization
   const handleClick = useCallback(() => {
@@ -149,12 +172,22 @@ export function AppointmentCard({ appointment, onClick, onStatusChange, style }:
   }, [onClick]);
   
   // Handle closing the dialog with useCallback for optimization
-  const handleCloseDialog = useCallback(() => {
-    setIsDialogOpen(false);
+  const handleCloseDialog = useCallback(async () => {
+    // First, ensure we have the latest data
     if (onStatusChange) {
-      onStatusChange();
+      try {
+        await onStatusChange();
+        
+        // After successful refresh, update local state with the latest data
+        setLocalAppointment({...appointment});
+      } catch (error) {
+        console.error('Error refreshing data on dialog close:', error);
+      }
     }
-  }, [onStatusChange]);
+    
+    // Close the dialog
+    setIsDialogOpen(false);
+  }, [onStatusChange, appointment]);
   
   // Render the status tag with the StatusIcon component
   const renderStatusTag = useCallback(() => {
@@ -165,10 +198,10 @@ export function AppointmentCard({ appointment, onClick, onStatusChange, style }:
         "text-white text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1 shadow-sm"
       )}>
         <StatusIcon className="h-3 w-3" />
-        <span className="uppercase tracking-wide text-[10px]">{appointment.status}</span>
+        <span className="uppercase tracking-wide text-[10px]">{localAppointment.status}</span>
       </span>
     );
-  }, [appointment.status, currentStatusConfig]);
+  }, [localAppointment.status, currentStatusConfig]);
   
   // Format the appointment date for display
   const formattedDate = useMemo(() => {
@@ -178,7 +211,7 @@ export function AppointmentCard({ appointment, onClick, onStatusChange, style }:
       return 'Unknown date';
     }
   }, [appointment.date]);
-  
+
   return (
     <>
       <div
@@ -209,7 +242,7 @@ export function AppointmentCard({ appointment, onClick, onStatusChange, style }:
           </div>
           {renderStatusTag()}
         </div>
-        
+
         {/* Card content */}
         <div className="p-3 bg-white">
           {isLoading ? (
@@ -217,19 +250,19 @@ export function AppointmentCard({ appointment, onClick, onStatusChange, style }:
               <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse"></div>
               <div className="h-3 w-1/2 bg-gray-100 rounded animate-pulse"></div>
               <div className="h-3 w-2/3 bg-gray-100 rounded animate-pulse"></div>
-            </div>
+      </div>
           ) : hasError ? (
             <div className="text-rose-500 text-xs flex items-center gap-1">
               <AlertCircle className="h-3 w-3" />
               <span>Could not load appointment details</span>
-            </div>
+                      </div>
           ) : (
             <>
               {/* Service name */}
               <div className="font-medium text-sm truncate">
                 {service?.name || 'Unknown service'}
               </div>
-              
+
               {/* Duration badge */}
               <div className="mt-1.5 mb-2">
                 <span className={cn(
@@ -240,28 +273,28 @@ export function AppointmentCard({ appointment, onClick, onStatusChange, style }:
                   {duration}
                 </span>
               </div>
-              
+
               {/* Client info */}
               <div className="space-y-1">
                 <div className="flex items-center text-xs text-gray-700 truncate">
                   <User className="h-3 w-3 mr-1.5 text-gray-500 flex-shrink-0" />
                   <span className="truncate">{client?.name || 'Unknown client'}</span>
-                </div>
-                
+              </div>
+
                 {client?.phone && (
                   <div className="flex items-center text-xs text-gray-500 truncate">
                     <Phone className="h-3 w-3 mr-1.5 text-gray-400 flex-shrink-0" />
                     <span className="truncate">{client.phone}</span>
-                  </div>
-                )}
-                
+                    </div>
+                  )}
+                  
                 {/* Only show date if available and only on certain views */}
                 {appointment.date && (
                   <div className="flex items-center text-xs text-gray-500 truncate">
                     <Calendar className="h-3 w-3 mr-1.5 text-gray-400 flex-shrink-0" />
                     <span className="truncate">{formattedDate}</span>
-                  </div>
-                )}
+                      </div>
+                    )}
               </div>
             </>
           )}
@@ -269,16 +302,27 @@ export function AppointmentCard({ appointment, onClick, onStatusChange, style }:
       </div>
       
       {/* Modal dialog for appointment details */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen} modal={true}>
-        <DialogContent className="p-0 !max-w-[1400px] !w-[95vw] h-[90vh] sm:!max-w-[1200px] overflow-hidden">
+      <Dialog open={isDialogOpen} onOpenChange={(open) => {
+        // Only allow programmatic closing through our handler
+        // This prevents the dialog from closing when clicking inside it
+        if (!open && isDialogOpen) {
+          // Do nothing - don't close automatically
+          // We'll handle closing explicitly via handleCloseDialog
+          // This prevents the dialog from closing when selecting options
+          return;
+        }
+        setIsDialogOpen(open);
+      }} modal={true}>
+        <DialogContent className="p-0 !max-w-[1400px] !w-[95vw] h-[90vh] sm:!max-w-[1200px] overflow-hidden" hideCloseButton>
           <DialogHeader className="sr-only">
             <DialogTitle>Appointment Details</DialogTitle>
           </DialogHeader>
           {isDialogOpen && (
             <AppointmentDetailView
-              appointment={appointment}
+              appointment={localAppointment}
               onClose={handleCloseDialog}
-              onStatusChange={onStatusChange}
+              onStatusChange={handleStatusChange}
+              onUpdate={handleStatusChange}
             />
           )}
         </DialogContent>

@@ -187,7 +187,12 @@ export function CalendarView({ onTodayClick, selectedDate }: CalendarViewProps) 
     
     try {
       setIsLoading(true);
+      setError(null);
+      
+      // Fetch fresh data from the API
       const updatedAppointments = await getBusinessAppointments(user.businessId);
+      
+      // Update the appointments state with the fresh data
       setAppointments(updatedAppointments);
     } catch (error) {
       console.error('Error refreshing appointments:', error);
@@ -427,7 +432,7 @@ export function CalendarView({ onTodayClick, selectedDate }: CalendarViewProps) 
                       
                       return (
                         <AppointmentCard
-                          key={appointment.id}
+                          key={`${appointment.id}-${appointment.status}`}
                           appointment={appointment}
                           onClick={() => refreshAppointments()}
                           onStatusChange={refreshAppointments}

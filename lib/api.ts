@@ -907,5 +907,67 @@ export const deleteServiceCategory = async (id: string) => {
   }
 };
 
+/**
+ * Send a reminder message to a client for their appointment
+ * @param appointmentId The ID of the appointment
+ * @returns Promise<boolean> Success status
+ */
+export async function sendReminderMessage(appointmentId: string): Promise<boolean> {
+  try {
+    // This would connect to your notification service
+    // For now, we'll simulate success
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // In a real implementation, you would:
+    // 1. Get the appointment details including client contact info
+    // 2. Generate the appropriate message
+    // 3. Send via the appropriate channel (SMS/email)
+    // 4. Log the notification in your database
+    
+    return true;
+  } catch (error) {
+    console.error('Error sending reminder:', error);
+    throw new Error('Failed to send reminder');
+  }
+}
+
+/**
+ * Update payment status for an appointment
+ * @param appointmentId The ID of the appointment
+ * @param isPaid Whether the appointment is paid
+ * @returns Promise<boolean> Success status
+ */
+export async function updatePaymentStatus(appointmentId: string, isPaid: boolean): Promise<boolean> {
+  try {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // In a real implementation, you would update the payment status in your database
+    return true;
+  } catch (error) {
+    console.error('Error updating payment status:', error);
+    throw new Error('Failed to update payment status');
+  }
+}
+
+/**
+ * Get appointment history for a client
+ * @param clientId The ID of the client
+ * @returns Promise<Appointment[]> List of appointments
+ */
+export async function getClientAppointmentHistory(clientId: string): Promise<Appointment[]> {
+  try {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 700));
+    
+    // This would fetch from your API
+    // For now, return empty array
+    return [];
+  } catch (error) {
+    console.error('Error fetching client appointment history:', error);
+    throw new Error('Failed to fetch client appointment history');
+  }
+}
+
 // Initialize server availability check
 checkServerAvailability();
