@@ -14,6 +14,8 @@ module.exports = {
           "pawly-dark-blue": "#27568B",
           "pawly-teal": "#47A1C4",
           "pawly-amber": "#B68250",
+          // Add a solid accent color for booking form
+          "accent": "#F5DA6B", // Yellow accent color
           // Эти цвета используются в соответствии с CSS-переменными
           border: "hsl(var(--border))",
           input: "hsl(var(--input))",
@@ -36,6 +38,7 @@ module.exports = {
             DEFAULT: "hsl(var(--muted))",
             foreground: "hsl(var(--muted-foreground))",
           },
+          // Keep existing accent structure but our solid color will take precedence
           accent: {
             DEFAULT: "hsl(var(--accent))",
             foreground: "hsl(var(--accent-foreground))",

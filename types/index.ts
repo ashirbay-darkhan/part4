@@ -66,6 +66,7 @@ export type WorkingHours = {
   endTime: string; // '17:00'
   breakStart?: string; // Optional break time
   breakEnd?: string;
+  timeSlots: string[]; // Available time slots for this day
 };
 
 export type BusinessUser = User & {

@@ -9,62 +9,7 @@
       "businessId": "1742230321916",
       "businessName": "Pied piper",
       "isVerified": false,
-      "serviceIds": [],
-      "avatar": "",
-      "workingHours": [
-        {
-          "dayOfWeek": 1,
-          "isWorking": true,
-          "startTime": "09:00",
-          "endTime": "17:00",
-          "breakStart": "12:00",
-          "breakEnd": "13:00"
-        },
-        {
-          "dayOfWeek": 2,
-          "isWorking": true,
-          "startTime": "09:00",
-          "endTime": "17:00",
-          "breakStart": "12:00",
-          "breakEnd": "13:00"
-        },
-        {
-          "dayOfWeek": 3,
-          "isWorking": true,
-          "startTime": "09:00",
-          "endTime": "17:00",
-          "breakStart": "12:00",
-          "breakEnd": "13:00"
-        },
-        {
-          "dayOfWeek": 4,
-          "isWorking": true,
-          "startTime": "09:00",
-          "endTime": "17:00",
-          "breakStart": "12:00",
-          "breakEnd": "13:00"
-        },
-        {
-          "dayOfWeek": 5,
-          "isWorking": true,
-          "startTime": "09:00",
-          "endTime": "16:00",
-          "breakStart": "12:00",
-          "breakEnd": "13:00"
-        },
-        {
-          "dayOfWeek": 6,
-          "isWorking": false,
-          "startTime": "09:00",
-          "endTime": "17:00"
-        },
-        {
-          "dayOfWeek": 7,
-          "isWorking": false,
-          "startTime": "09:00",
-          "endTime": "17:00"
-        }
-      ]
+      "avatar": ""
     },
     {
       "name": "Gilfoile H.",
@@ -82,7 +27,7 @@
       "isVerified": true,
       "avatar": "https://ui-avatars.com/api/?name=Gilfoile%20H.&background=4f46e5&color=ffffff&bold=true&format=svg",
       "role": "staff",
-      "_timestamp": 1742742670567,
+      "_timestamp": 1743070803377,
       "phone": "",
       "workingHours": [
         {
@@ -91,7 +36,25 @@
           "startTime": "09:00",
           "endTime": "18:00",
           "breakStart": "12:00",
-          "breakEnd": "13:00"
+          "breakEnd": "13:00",
+          "timeSlots": [
+            "09:00",
+            "09:30",
+            "10:00",
+            "10:30",
+            "11:00",
+            "11:30",
+            "13:00",
+            "13:30",
+            "14:00",
+            "14:30",
+            "15:00",
+            "15:30",
+            "16:00",
+            "16:30",
+            "17:00",
+            "17:30"
+          ]
         },
         {
           "dayOfWeek": 2,
@@ -99,7 +62,25 @@
           "startTime": "09:00",
           "endTime": "18:00",
           "breakStart": "12:00",
-          "breakEnd": "13:00"
+          "breakEnd": "13:00",
+          "timeSlots": [
+            "09:00",
+            "09:30",
+            "10:00",
+            "10:30",
+            "11:00",
+            "11:30",
+            "13:00",
+            "13:30",
+            "14:00",
+            "14:30",
+            "15:00",
+            "15:30",
+            "16:00",
+            "16:30",
+            "17:00",
+            "17:30"
+          ]
         },
         {
           "dayOfWeek": 3,
@@ -107,15 +88,51 @@
           "startTime": "09:00",
           "endTime": "18:00",
           "breakStart": "12:00",
-          "breakEnd": "13:00"
+          "breakEnd": "13:00",
+          "timeSlots": [
+            "09:00",
+            "09:30",
+            "10:00",
+            "10:30",
+            "11:00",
+            "11:30",
+            "13:00",
+            "13:30",
+            "14:00",
+            "14:30",
+            "15:00",
+            "15:30",
+            "16:00",
+            "16:30",
+            "17:00",
+            "17:30"
+          ]
         },
         {
           "dayOfWeek": 4,
           "isWorking": true,
           "startTime": "09:00",
-          "endTime": "18:00",
+          "endTime": "19:00",
           "breakStart": "12:00",
-          "breakEnd": "13:00"
+          "breakEnd": "13:00",
+          "timeSlots": [
+            "09:00",
+            "09:30",
+            "10:00",
+            "10:30",
+            "11:00",
+            "11:30",
+            "13:00",
+            "13:30",
+            "14:00",
+            "14:30",
+            "15:00",
+            "15:30",
+            "16:00",
+            "16:30",
+            "17:00",
+            "17:30"
+          ]
         },
         {
           "dayOfWeek": 5,
@@ -123,19 +140,39 @@
           "startTime": "09:00",
           "endTime": "18:00",
           "breakStart": "12:00",
-          "breakEnd": "13:00"
+          "breakEnd": "13:00",
+          "timeSlots": [
+            "09:00",
+            "09:30",
+            "10:00",
+            "10:30",
+            "11:00",
+            "11:30",
+            "13:00",
+            "13:30",
+            "14:00",
+            "14:30",
+            "15:00",
+            "15:30",
+            "16:00",
+            "16:30",
+            "17:00",
+            "17:30"
+          ]
         },
         {
           "dayOfWeek": 6,
           "isWorking": false,
           "startTime": "09:00",
-          "endTime": "17:00"
+          "endTime": "17:00",
+          "timeSlots": []
         },
         {
           "dayOfWeek": 7,
           "isWorking": false,
           "startTime": "09:00",
-          "endTime": "17:00"
+          "endTime": "17:00",
+          "timeSlots": []
         }
       ]
     },
@@ -151,6 +188,7 @@
       "businessId": "1742230321916",
       "businessName": "Pied piper",
       "password": "password123",
+      "role": "staff",
       "id": "1742411457578",
       "isVerified": true,
       "workingHours": [
@@ -160,7 +198,23 @@
           "startTime": "10:00",
           "endTime": "18:00",
           "breakStart": "13:00",
-          "breakEnd": "14:00"
+          "breakEnd": "14:00",
+          "timeSlots": [
+            "10:00",
+            "10:30",
+            "11:00",
+            "11:30",
+            "12:00",
+            "12:30",
+            "14:00",
+            "14:30",
+            "15:00",
+            "15:30",
+            "16:00",
+            "16:30",
+            "17:00",
+            "17:30"
+          ]
         },
         {
           "dayOfWeek": 2,
@@ -168,7 +222,23 @@
           "startTime": "10:00",
           "endTime": "18:00",
           "breakStart": "13:00",
-          "breakEnd": "14:00"
+          "breakEnd": "14:00",
+          "timeSlots": [
+            "10:00",
+            "10:30",
+            "11:00",
+            "11:30",
+            "12:00",
+            "12:30",
+            "14:00",
+            "14:30",
+            "15:00",
+            "15:30",
+            "16:00",
+            "16:30",
+            "17:00",
+            "17:30"
+          ]
         },
         {
           "dayOfWeek": 3,
@@ -176,15 +246,47 @@
           "startTime": "10:00",
           "endTime": "18:00",
           "breakStart": "13:00",
-          "breakEnd": "14:00"
+          "breakEnd": "14:00",
+          "timeSlots": [
+            "10:00",
+            "10:30",
+            "11:00",
+            "11:30",
+            "12:00",
+            "12:30",
+            "14:00",
+            "14:30",
+            "15:00",
+            "15:30",
+            "16:00",
+            "16:30",
+            "17:00",
+            "17:30"
+          ]
         },
         {
           "dayOfWeek": 4,
           "isWorking": true,
-          "startTime": "10:00",
-          "endTime": "18:00",
+          "startTime": "09:00",
+          "endTime": "19:00",
           "breakStart": "13:00",
-          "breakEnd": "14:00"
+          "breakEnd": "14:00",
+          "timeSlots": [
+            "10:00",
+            "10:30",
+            "11:00",
+            "11:30",
+            "12:00",
+            "12:30",
+            "14:00",
+            "14:30",
+            "15:00",
+            "15:30",
+            "16:00",
+            "16:30",
+            "17:00",
+            "17:30"
+          ]
         },
         {
           "dayOfWeek": 5,
@@ -192,21 +294,49 @@
           "startTime": "10:00",
           "endTime": "18:00",
           "breakStart": "13:00",
-          "breakEnd": "14:00"
+          "breakEnd": "14:00",
+          "timeSlots": [
+            "10:00",
+            "10:30",
+            "11:00",
+            "11:30",
+            "12:00",
+            "12:30",
+            "14:00",
+            "14:30",
+            "15:00",
+            "15:30",
+            "16:00",
+            "16:30",
+            "17:00",
+            "17:30"
+          ]
         },
         {
           "dayOfWeek": 6,
           "isWorking": true,
           "startTime": "11:00",
-          "endTime": "15:00"
+          "endTime": "15:00",
+          "timeSlots": [
+            "11:00",
+            "11:30",
+            "12:00",
+            "12:30",
+            "13:00",
+            "13:30",
+            "14:00",
+            "14:30"
+          ]
         },
         {
           "dayOfWeek": 7,
           "isWorking": false,
           "startTime": "09:00",
-          "endTime": "17:00"
+          "endTime": "17:00",
+          "timeSlots": []
         }
-      ]
+      ],
+      "_timestamp": 1743070832202
     },
     {
       "id": "1742419128863",
@@ -217,62 +347,7 @@
       "businessId": "1742419128863",
       "businessName": "Nike",
       "isVerified": false,
-      "avatar": "https://ui-avatars.com/api/?name=%D0%94%D0%B0%D1%80%D1%85%D0%B0%D0%BD&background=BE185D&color=fff",
-      "serviceIds": [],
-      "workingHours": [
-        {
-          "dayOfWeek": 1,
-          "isWorking": true,
-          "startTime": "09:00",
-          "endTime": "17:00",
-          "breakStart": "12:30",
-          "breakEnd": "13:30"
-        },
-        {
-          "dayOfWeek": 2,
-          "isWorking": true,
-          "startTime": "09:00",
-          "endTime": "17:00",
-          "breakStart": "12:30",
-          "breakEnd": "13:30"
-        },
-        {
-          "dayOfWeek": 3,
-          "isWorking": true,
-          "startTime": "09:00",
-          "endTime": "17:00",
-          "breakStart": "12:30",
-          "breakEnd": "13:30"
-        },
-        {
-          "dayOfWeek": 4,
-          "isWorking": true,
-          "startTime": "09:00",
-          "endTime": "17:00",
-          "breakStart": "12:30",
-          "breakEnd": "13:30"
-        },
-        {
-          "dayOfWeek": 5,
-          "isWorking": true,
-          "startTime": "09:00",
-          "endTime": "17:00",
-          "breakStart": "12:30",
-          "breakEnd": "13:30"
-        },
-        {
-          "dayOfWeek": 6,
-          "isWorking": false,
-          "startTime": "09:00",
-          "endTime": "17:00"
-        },
-        {
-          "dayOfWeek": 7,
-          "isWorking": false,
-          "startTime": "09:00",
-          "endTime": "17:00"
-        }
-      ]
+      "avatar": "https://ui-avatars.com/api/?name=%D0%94%D0%B0%D1%80%D1%85%D0%B0%D0%BD&background=BE185D&color=fff"
     },
     {
       "name": "Nikita",
@@ -296,7 +371,23 @@
           "startTime": "09:30",
           "endTime": "17:30",
           "breakStart": "13:00",
-          "breakEnd": "14:00"
+          "breakEnd": "14:00",
+          "timeSlots": [
+            "09:30",
+            "10:00",
+            "10:30",
+            "11:00",
+            "11:30",
+            "12:00",
+            "12:30",
+            "14:00",
+            "14:30",
+            "15:00",
+            "15:30",
+            "16:00",
+            "16:30",
+            "17:00"
+          ]
         },
         {
           "dayOfWeek": 2,
@@ -304,7 +395,23 @@
           "startTime": "09:30",
           "endTime": "17:30",
           "breakStart": "13:00",
-          "breakEnd": "14:00"
+          "breakEnd": "14:00",
+          "timeSlots": [
+            "09:30",
+            "10:00",
+            "10:30",
+            "11:00",
+            "11:30",
+            "12:00",
+            "12:30",
+            "14:00",
+            "14:30",
+            "15:00",
+            "15:30",
+            "16:00",
+            "16:30",
+            "17:00"
+          ]
         },
         {
           "dayOfWeek": 3,
@@ -312,7 +419,23 @@
           "startTime": "09:30",
           "endTime": "17:30",
           "breakStart": "13:00",
-          "breakEnd": "14:00"
+          "breakEnd": "14:00",
+          "timeSlots": [
+            "09:30",
+            "10:00",
+            "10:30",
+            "11:00",
+            "11:30",
+            "12:00",
+            "12:30",
+            "14:00",
+            "14:30",
+            "15:00",
+            "15:30",
+            "16:00",
+            "16:30",
+            "17:00"
+          ]
         },
         {
           "dayOfWeek": 4,
@@ -320,7 +443,23 @@
           "startTime": "09:30",
           "endTime": "17:30",
           "breakStart": "13:00",
-          "breakEnd": "14:00"
+          "breakEnd": "14:00",
+          "timeSlots": [
+            "09:30",
+            "10:00",
+            "10:30",
+            "11:00",
+            "11:30",
+            "12:00",
+            "12:30",
+            "14:00",
+            "14:30",
+            "15:00",
+            "15:30",
+            "16:00",
+            "16:30",
+            "17:00"
+          ]
         },
         {
           "dayOfWeek": 5,
@@ -328,19 +467,46 @@
           "startTime": "09:30",
           "endTime": "17:30",
           "breakStart": "13:00",
-          "breakEnd": "14:00"
+          "breakEnd": "14:00",
+          "timeSlots": [
+            "09:30",
+            "10:00",
+            "10:30",
+            "11:00",
+            "11:30",
+            "12:00",
+            "12:30",
+            "14:00",
+            "14:30",
+            "15:00",
+            "15:30",
+            "16:00",
+            "16:30",
+            "17:00"
+          ]
         },
         {
           "dayOfWeek": 6,
           "isWorking": true,
           "startTime": "10:00",
-          "endTime": "14:00"
+          "endTime": "14:00",
+          "timeSlots": [
+            "10:00",
+            "10:30",
+            "11:00",
+            "11:30",
+            "12:00",
+            "12:30",
+            "13:00",
+            "13:30"
+          ]
         },
         {
           "dayOfWeek": 7,
           "isWorking": false,
           "startTime": "09:00",
-          "endTime": "17:00"
+          "endTime": "17:00",
+          "timeSlots": []
         }
       ]
     }
@@ -417,18 +583,97 @@
   ],
   "appointments": [
     {
-      "date": "2025-03-27",
+      "id": "1",
+      "clientId": "1",
+      "employeeId": "1742244079841",
+      "serviceId": "1742244200559",
+      "date": "2024-03-21",
       "startTime": "10:00",
       "endTime": "11:00",
       "duration": 60,
+      "status": "Confirmed",
+      "price": 2000,
+      "businessId": "1742230321916"
+    },
+    {
+      "date": "2025-03-27",
+      "startTime": "13:00",
+      "endTime": "14:00",
+      "duration": 60,
       "serviceId": "1742230995581",
-      "employeeId": "1742244079841",
+      "employeeId": "1742411457578",
       "status": "Pending",
       "price": 2000,
       "businessId": "1742230321916",
-      "comment": "Lorem ipsum",
+      "comment": "qweqwe",
       "clientId": 1,
-      "id": 1
+      "id": 2
+    },
+    {
+      "clientId": "1743064540507",
+      "employeeId": "1742244079841",
+      "serviceId": "1742230995581",
+      "date": "2025-03-27",
+      "startTime": "12:00",
+      "endTime": "13:00",
+      "duration": 60,
+      "status": "Pending",
+      "price": 2000,
+      "businessId": "1742230321916",
+      "id": 3
+    },
+    {
+      "clientId": "1743069337718",
+      "employeeId": "1742244079841",
+      "serviceId": "1742230995581",
+      "date": "2025-03-27",
+      "startTime": "15:30",
+      "endTime": "16:30",
+      "duration": 60,
+      "status": "Pending",
+      "price": 2000,
+      "businessId": "1742230321916",
+      "id": 4
+    },
+    {
+      "clientId": "1743069641822",
+      "employeeId": "1742244079841",
+      "serviceId": "1742230995581",
+      "date": "2025-03-27",
+      "startTime": "17:30",
+      "endTime": "18:30",
+      "duration": 60,
+      "status": "Pending",
+      "price": 2000,
+      "businessId": "1742230321916",
+      "id": 5
+    },
+    {
+      "clientId": "1743069687678",
+      "employeeId": "1742411457578",
+      "serviceId": "1742230995581",
+      "date": "2025-03-27",
+      "startTime": "17:30",
+      "endTime": "18:30",
+      "duration": 60,
+      "status": "Pending",
+      "price": 2000,
+      "businessId": "1742230321916",
+      "id": 6
+    },
+    {
+      "clientId": "1743070901628",
+      "employeeId": "1742411457578",
+      "serviceId": "1742230995581",
+      "date": "2025-03-27",
+      "startTime": "16:30",
+      "endTime": "17:30",
+      "duration": 60,
+      "status": "Arrived",
+      "price": 2000,
+      "businessId": "1742230321916",
+      "comment": "qwe",
+      "id": "7"
     }
   ],
   "clients": [
@@ -491,6 +736,47 @@
       "totalVisits": 0,
       "lastVisit": "2025-03-19T22:21:30.609Z",
       "id": 6
+    },
+    {
+      "id": "1743064540507",
+      "name": "asdasdsad",
+      "phone": "+7474894943",
+      "email": "",
+      "totalVisits": 0,
+      "businessId": "1742230321916"
+    },
+    {
+      "id": "1743069337718",
+      "name": "qweqw",
+      "phone": "1231231",
+      "email": "",
+      "totalVisits": 0,
+      "businessId": "1742230321916"
+    },
+    {
+      "id": "1743069641822",
+      "name": "qweqwe",
+      "phone": "123123123",
+      "email": "",
+      "totalVisits": 0,
+      "businessId": "1742230321916"
+    },
+    {
+      "id": "1743069687678",
+      "name": "qweqweqwe",
+      "phone": "123123123",
+      "email": "",
+      "totalVisits": 0,
+      "businessId": "1742230321916"
+    },
+    {
+      "id": "1743070901628",
+      "name": "cygvbh",
+      "phone": "123123123",
+      "email": "qwe",
+      "totalVisits": 0,
+      "businessId": "1742230321916",
+      "notes": "qwe"
     }
   ],
   "serviceCategories": [
