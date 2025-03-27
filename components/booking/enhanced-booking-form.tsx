@@ -1,8 +1,159 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, ChevronLeft, Clock, User, Phone, Mail, MessageSquare, Calendar, Check, Info, ArrowLeft, Star, ChevronDown } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Clock, User, Phone, Mail, MessageSquare, Calendar as CalendarIcon, Check, Info, ArrowLeft, Star, ChevronDown } from 'lucide-react';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, parseISO } from 'date-fns';
 import { createAppointment } from '@/lib/api';
+
+// Custom calendar component
+interface CustomCalendarProps {
+  selectedDate: Date;
+  onDateChange: (date: Date) => void;
+  disabledDays?: (date: Date) => boolean;
+}
+
+const CustomCalendar: React.FC<CustomCalendarProps> = ({ selectedDate, onDateChange, disabledDays }) => {
+  const [currentMonth, setCurrentMonth] = useState<Date>(selectedDate || new Date());
+  
+  // Generate calendar days
+  const getDaysInMonth = (date: Date) => {
+    const start = startOfMonth(date);
+    const end = endOfMonth(date);
+    return eachDayOfInterval({ start, end });
+  };
+  
+  const days = getDaysInMonth(currentMonth);
+  
+  // Get day of week for the first day of the month (Monday = 0, Sunday = 6)
+  const getStartDay = (date: Date) => {
+    const day = startOfMonth(date).getDay();
+    // Convert to Monday = 0, Sunday = 6
+    return day === 0 ? 6 : day - 1;
+  };
+  
+  const startDay = getStartDay(currentMonth);
+  
+  // Previous and next month navigation
+  const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
+  const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
+  
+  // Check if a date is disabled
+  const isDisabled = (date: Date) => {
+    if (!disabledDays) return false;
+    return disabledDays(date);
+  };
+  
+  // Days of the week - starting with Monday
+  const weekDays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+  
+  // Generate calendar grid
+  const generateCalendarGrid = () => {
+    const result = [];
+    const firstDayOfMonth = startOfMonth(currentMonth);
+    const lastDayOfMonth = endOfMonth(currentMonth);
+    
+    // Calculate the first day to display (might be from the previous month)
+    // If first day of month is Monday (1), we don't need to show any days from previous month
+    // If it's any other day, we need to show some days from the previous month
+    const firstDay = startDay > 0 ? new Date(firstDayOfMonth) : firstDayOfMonth;
+    firstDay.setDate(firstDay.getDate() - startDay);
+    
+    // Generate a flat array of 42 days (6 weeks × 7 days)
+    for (let i = 0; i < 42; i++) {
+      const date = new Date(firstDay);
+      date.setDate(date.getDate() + i);
+      
+      // Only include days from the current month
+      if (date.getMonth() === currentMonth.getMonth()) {
+        result.push(date);
+      } else {
+        result.push(null); // Placeholder for days not in current month
+      }
+    }
+    
+    // Split into weeks
+    const weeks = [];
+    for (let i = 0; i < 6; i++) {
+      const week = result.slice(i * 7, (i + 1) * 7);
+      // Only include weeks that have at least one day
+      if (week.some(day => day !== null)) {
+        weeks.push(week);
+      }
+    }
+    
+    return weeks;
+  };
+  
+  const weeks = generateCalendarGrid();
+  
+  return (
+    <div className="w-full">
+      <div className="flex justify-between items-center mb-2">
+        <button
+          type="button"
+          onClick={prevMonth}
+          className="p-1 rounded-full hover:bg-gray-100"
+          aria-label="Previous month"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        
+        <div className="text-center font-medium">
+          {format(currentMonth, 'MMMM yyyy')}
+        </div>
+        
+        <button
+          type="button"
+          onClick={nextMonth}
+          className="p-1 rounded-full hover:bg-gray-100"
+          aria-label="Next month"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      </div>
+      
+      {/* Weekday headers */}
+      <div className="flex justify-around mb-2">
+        {weekDays.map(day => (
+          <div key={day} className="w-9 text-center text-gray-500 font-medium text-sm">
+            {day}
+          </div>
+        ))}
+      </div>
+      
+      {/* Calendar grid */}
+      <div className="grid grid-cols-7 gap-x-0 gap-y-1 mt-1">
+        
+        {/* Calendar days - flattened to ensure proper grid alignment */}
+        {weeks.flat().map((day, index) => {
+          if (!day) {
+            // Empty cell for days not in current month
+            return <div key={`empty-${index}`} className="h-9 w-9 mx-auto" />;
+          }
+          
+          const isSelected = isSameDay(day, selectedDate);
+          const isDisabledDay = isDisabled(day);
+          
+          return (
+            <button
+              key={`day-${index}`}
+              type="button"
+              className={`h-9 w-9 mx-auto rounded-full flex items-center justify-center text-sm
+                ${isSelected ? 'bg-black text-white' : ''}
+                ${!isSelected && !isDisabledDay ? 'hover:bg-gray-100' : ''}
+                ${isDisabledDay ? 'text-gray-300 cursor-not-allowed' : 'cursor-pointer'}
+              `}
+              onClick={() => !isDisabledDay && onDateChange(day)}
+              disabled={isDisabledDay}
+            >
+              {format(day, 'd')}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
 interface Service {
   id: string;
@@ -65,6 +216,7 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -452,10 +604,25 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
     });
   };
 
+  // Handle calendar date change
+  const handleCalendarDateChange = (date: Date | undefined) => {
+    if (date) {
+      setSelectedCalendarDate(date);
+      setSelectedDate(format(date, 'yyyy-MM-dd'));
+      setSelectedTime(null); // Reset time when date changes
+    }
+  };
+  
   // Handle staff and time selection
   const handleTimeSelection = (staff: StaffMember, time: string) => {
     setSelectedStaff(staff);
     setSelectedTime(time);
+  };
+  
+  // Get available time slots for a specific date and staff
+  const getAvailableTimeSlotsForDate = (staffId: string, date: Date) => {
+    const formattedDate = format(date, 'yyyy-MM-dd');
+    return getStaffTimeSlots(staffId, formattedDate);
   };
 
   return (
@@ -582,10 +749,26 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
                   <span>Back to services</span>
                 </button>
                 
+                {/* Calendar for date selection */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-medium mb-3">Select Date</h3>
+                  <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                    <CustomCalendar 
+                      selectedDate={selectedCalendarDate}
+                      onDateChange={handleCalendarDateChange}
+                      disabledDays={(date) => 
+                        date < new Date(new Date().setHours(0, 0, 0, 0)) || // No past dates
+                        date.getDay() === 0 // No Sundays - getDay() returns 0 for Sunday
+                      }
+                    />
+                  </div>
+                </div>
+                
                 {/* Staff List with Availability */}
                 <div className="space-y-6">
-                  {staff.map((person) => {
-                    const availability = getEarliestAvailability(person.id);
+                  {staff
+                    .filter(person => getAvailableTimeSlotsForDate(person.id, selectedCalendarDate).length > 0)
+                    .map((person) => {
                     const isSelected = selectedStaff?.id === person.id;
                     
                     return (
@@ -646,33 +829,30 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
                               </div>
                             </div>
                             
-                            {/* Available Time Slots */}
-                            {availability && (
-                              <div className="mt-4">
-                                <div className="mb-2">
-                                  <span className="text-sm text-gray-700 font-medium">
-                                    Earliest availability: {availability.date}
-                                  </span>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                  {availability.slots.slice(0, 5).map((slot) => {
-                                    const isTimeSelected = isSelected && selectedTime === slot.time;
-                                    return (
-                                      <button
-                                        key={slot.time}
-                                        className={`py-2 px-4 rounded-full text-sm font-medium transition-all
-                                          ${isTimeSelected 
-                                            ? 'bg-black text-white' 
-                                            : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
-                                        onClick={() => handleTimeSelection(person, slot.time)}
-                                      >
-                                        {slot.time}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
+                            <div className="mt-4">
+                              <div className="mb-2">
+                                <span className="text-sm text-gray-700 font-medium">
+                                  Available times for {format(selectedCalendarDate, 'EEEE, MMMM d')}:
+                                </span>
                               </div>
-                            )}
+                              <div className="flex flex-wrap gap-2">
+                                {getAvailableTimeSlotsForDate(person.id, selectedCalendarDate).map((time) => {
+                                  const isTimeSelected = isSelected && selectedTime === time;
+                                  return (
+                                    <button
+                                      key={time}
+                                      className={`py-2 px-4 rounded-full text-sm font-medium transition-all
+                                        ${isTimeSelected 
+                                          ? 'bg-black text-white' 
+                                          : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+                                      onClick={() => handleTimeSelection(person, time)}
+                                    >
+                                      {time}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -687,7 +867,7 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
                       <div>
                         <p className="text-gray-700">Selected: <span className="font-medium">{selectedService?.name}</span></p>
                         <p className="text-gray-700 mt-1">
-                          {selectedStaff.name} · {selectedTime} · {getEarliestAvailability(selectedStaff.id)?.date === "today" ? "Today" : "Tomorrow"}
+                          {selectedStaff.name} · {selectedTime} · {format(selectedCalendarDate, 'MMMM d, yyyy')}
                         </p>
                         <p className="text-gray-900 font-medium mt-1">{selectedService ? formatCurrency(selectedService.price) : ''}</p>
                       </div>
@@ -838,7 +1018,7 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
                 
                 <div className="rounded-md bg-gray-50 border border-gray-200 p-4 mb-6">
                   <div className="flex items-start">
-                    <Calendar className="h-5 w-5 text-gray-600 mr-3 mt-0.5" />
+                    <CalendarIcon className="h-5 w-5 text-gray-600 mr-3 mt-0.5" />
                     <div>
                       <h3 className="font-medium text-gray-900">Appointment Details</h3>
                       <p className="text-gray-600 text-sm mt-1">
@@ -940,7 +1120,7 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
               <div className="flex justify-between items-center">
                 <div>
                   <p className="font-medium text-gray-900">{selectedService?.name}</p>
-                  <p className="text-sm text-gray-500">{selectedStaff.name}, {selectedTime}</p>
+                  <p className="text-sm text-gray-500">{selectedStaff.name}, {selectedTime}, {format(selectedCalendarDate, 'MMM d')}</p>
                 </div>
                 <button 
                   onClick={nextStep}
@@ -964,4 +1144,4 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
   );
 };
 
-export default EnhancedBookingForm; 
+export default EnhancedBookingForm;

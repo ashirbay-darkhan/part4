@@ -674,6 +674,19 @@
       "businessId": "1742230321916",
       "comment": "qwe",
       "id": "7"
+    },
+    {
+      "clientId": "1743109673410",
+      "employeeId": "1742244079841",
+      "serviceId": "1742230995581",
+      "date": "2025-03-28",
+      "startTime": "14:00",
+      "endTime": "15:00",
+      "duration": 60,
+      "status": "Pending",
+      "price": 2000,
+      "businessId": "1742230321916",
+      "id": "9GPYBwT"
     }
   ],
   "clients": [
@@ -777,6 +790,14 @@
       "totalVisits": 0,
       "businessId": "1742230321916",
       "notes": "qwe"
+    },
+    {
+      "id": "1743109673410",
+      "name": "asdasd",
+      "phone": "123123123",
+      "email": "",
+      "totalVisits": 0,
+      "businessId": "1742230321916"
     }
   ],
   "serviceCategories": [

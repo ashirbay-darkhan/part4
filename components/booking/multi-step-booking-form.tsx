@@ -509,63 +509,20 @@ export default function MultiStepBookingForm({
           {currentStep === 'datetime' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Choose Staff, Date & Time</h2>
-                <p className="text-gray-500">Select when you would like to book your appointment</p>
+                <h2 className="text-xl font-bold text-gray-900">Choose a Specialist</h2>
+                <p className="text-gray-500">Select who you'd like to book with</p>
               </div>
               
-              {/* Staff Selection */}
-              <div>
-                <h3 className="text-lg font-medium mb-3">Select Staff Member</h3>
-                
-                <FormField
-                  control={form.control}
-                  name="staffId"
-                  render={({ field }) => (
-                    <FormItem className="hidden">
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-                  {availableStaff.map((staffMember) => (
-                    <Card 
-                      key={staffMember.id}
-                      className={cn(
-                        "cursor-pointer hover:shadow-md transition-all border-2",
-                        watchedStaffId === staffMember.id ? "border-blue-500 bg-blue-50" : "border-transparent"
-                      )}
-                      onClick={() => form.setValue('staffId', staffMember.id)}
-                    >
-                      <CardContent className="p-4 flex flex-col items-center text-center">
-                        <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-2 overflow-hidden">
-                          {staffMember.avatar ? (
-                            <img 
-                              src={staffMember.avatar} 
-                              alt={staffMember.name}
-                              className="w-full h-full object-cover" 
-                            />
-                          ) : (
-                            <span className="text-lg font-medium">{staffMember.name.charAt(0)}</span>
-                          )}
-                        </div>
-                        <h4 className="font-medium">{staffMember.name}</h4>
-                        
-                        {watchedStaffId === staffMember.id && (
-                          <div className="mt-2">
-                            <Check className="h-5 w-5 text-blue-600" />
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Date Selection */}
+              {/* Back button */}
+              <button 
+                onClick={() => setCurrentStep('service')}
+                className="inline-flex items-center text-gray-700 mb-4"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                <span>Back to services</span>
+              </button>
+
+              {/* Date Selection - moved before staff selection */}
               <div>
                 <h3 className="text-lg font-medium mb-3">Select Date</h3>
                 
@@ -578,7 +535,11 @@ export default function MultiStepBookingForm({
                         <Calendar
                           mode="single"
                           selected={field.value}
-                          onSelect={field.onChange}
+                          onSelect={(date) => {
+                            field.onChange(date);
+                            // Reset time selection when date changes
+                            form.setValue('time', '');
+                          }}
                           disabled={(date) => 
                             date < new Date(new Date().setHours(0, 0, 0, 0)) || // No past dates
                             date.getDay() === 0 || // No Sundays
@@ -594,54 +555,115 @@ export default function MultiStepBookingForm({
                 />
               </div>
               
-              {/* Time Selection */}
+              {/* Staff Selection - after date selection */}
               <div>
-                <h3 className="text-lg font-medium mb-3">Select Time</h3>
+                <h3 className="text-lg font-medium mb-3">Choose a Specialist</h3>
                 
                 <FormField
                   control={form.control}
-                  name="time"
+                  name="staffId"
                   render={({ field }) => (
-                    <FormItem>
-                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                        {isLoadingTimeSlots ? (
-                          // Show loading skeleton
-                          Array(12).fill(0).map((_, i) => (
-                            <Skeleton key={i} className="h-10 w-full" />
-                          ))
-                        ) : availableTimeSlots.length > 0 ? (
-                          // Show available time slots
-                          availableTimeSlots.map((time) => (
-                            <Button
-                              key={time}
-                              type="button"
-                              variant={field.value === time ? "default" : "outline"}
-                              className={field.value === time ? "bg-blue-600" : ""}
-                              onClick={() => field.onChange(time)}
-                              disabled={!watchedStaffId || !watchedDate}
-                            >
-                              {time}
-                            </Button>
-                          ))
-                        ) : (
-                          // No available slots
-                          <div className="col-span-full text-center p-4 border border-yellow-200 bg-yellow-50 rounded-md">
-                            <AlertCircle className="h-5 w-5 text-yellow-500 mx-auto mb-2" />
-                            <p className="text-yellow-700">No available time slots for this date. Please select another date.</p>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {(!watchedStaffId || !watchedDate) && (
-                        <FormDescription className="mt-2">
-                          Please select staff and date first
-                        </FormDescription>
-                      )}
-                      
+                    <FormItem className="hidden">
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+                
+                <div className="space-y-4">
+                  {availableStaff.map((staffMember) => {
+                    const isSelected = watchedStaffId === staffMember.id;
+                    
+                    return (
+                      <Card 
+                        key={staffMember.id}
+                        className={cn(
+                          "border-2",
+                          isSelected ? "border-blue-500" : "border-gray-200"
+                        )}
+                      >
+                        {/* Staff Info */}
+                        <div className="p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-50"
+                          onClick={() => form.setValue('staffId', staffMember.id)}
+                        >
+                          <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
+                            {staffMember.avatar ? (
+                              <img 
+                                src={staffMember.avatar} 
+                                alt={staffMember.name}
+                                className="w-full h-full object-cover" 
+                              />
+                            ) : (
+                              <span className="text-lg font-medium">{staffMember.name.charAt(0)}</span>
+                            )}
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-medium text-lg">{staffMember.name}</h4>
+                            <p className="text-gray-500">staff</p>
+                            <p className="font-medium text-gray-800 mt-1">
+                              KZT {selectedService?.price.toLocaleString() || 0}
+                            </p>
+                          </div>
+                          
+                          <div className="ml-auto">
+                            <div 
+                              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center
+                                ${isSelected ? 'border-blue-500 bg-blue-500' : 'border-gray-300'}`}
+                            >
+                              {isSelected && <Check className="h-4 w-4 text-white" />}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Time Slots (only show for selected staff) */}
+                        {isSelected && watchedDate && (
+                          <div className="border-t px-4 py-3 bg-gray-50">
+                            <p className="text-sm text-gray-700 mb-3">
+                              <CalendarIcon className="inline-block w-4 h-4 mr-1" />
+                              <span>Available times for {format(watchedDate, 'EEEE, MMMM d')}:</span>
+                            </p>
+                            
+                            <FormField
+                              control={form.control}
+                              name="time"
+                              render={({ field }) => (
+                                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                                  {isLoadingTimeSlots ? (
+                                    // Loading state
+                                    Array(8).fill(0).map((_, i) => (
+                                      <Skeleton key={i} className="h-10 w-full" />
+                                    ))
+                                  ) : availableTimeSlots.length > 0 ? (
+                                    // Show time slots
+                                    availableTimeSlots.map((time) => (
+                                      <Button
+                                        key={time}
+                                        type="button"
+                                        variant={field.value === time ? "default" : "outline"}
+                                        className={field.value === time ? "bg-blue-600" : ""}
+                                        onClick={() => field.onChange(time)}
+                                      >
+                                        {time}
+                                      </Button>
+                                    ))
+                                  ) : (
+                                    // No available slots
+                                    <div className="col-span-full py-2 text-center">
+                                      <p className="text-gray-500">No available times on this date</p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            />
+                          </div>
+                        )}
+                      </Card>
+                    );
+                  })}
+                </div>
               </div>
               
               <div className="flex justify-between mt-6">
