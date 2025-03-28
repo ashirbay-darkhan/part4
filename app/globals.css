@@ -10,11 +10,13 @@
 }
 
 :root {
-  /* Main Color Palette inspired by Miyazaki design */
+  /* Main Color Palette - Refined Gold & Black with softer tones */
   --color-dark: #090B0B;      /* Dark black background */
-  --color-gold: #E4BC5D;      /* Gold accent */
-  --color-gold-light: #F2CE7E; /* Light gold background */
+  --color-gold: #D9C15C;      /* Darker gold accent - more muted */
+  --color-gold-light: #E3D291; /* Light gold background - softer */
+  --color-gold-dark: #C0AA4E;  /* Darker gold for contrast */
   --color-white: #FEFEFE;     /* Off-white */
+  --color-off-white: #F6F5F0; /* Subtle cream for backgrounds */
   --color-sidebar-bg: #000000; /* Black sidebar background */
 
   /* Base UI Colors */
@@ -174,9 +176,21 @@
     @apply text-xl md:text-2xl;
   }
   
-  /* Custom heading styles inspired by the Miyazaki design */
+  /* Enhanced typography system */
   .heading-xl {
-    @apply text-4xl md:text-5xl font-bold tracking-tight;
+    @apply text-4xl md:text-5xl font-bold tracking-tight leading-tight;
+  }
+  
+  .heading-lg {
+    @apply text-3xl md:text-4xl font-bold tracking-tight leading-tight;
+  }
+  
+  .heading-md {
+    @apply text-2xl md:text-3xl font-semibold tracking-tight leading-tight;
+  }
+  
+  .heading-sm {
+    @apply text-xl md:text-2xl font-semibold tracking-tight leading-tight;
   }
   
   .heading-gold {
@@ -188,27 +202,81 @@
     @apply text-base md:text-lg leading-relaxed;
   }
   
+  .text-body-sm {
+    @apply text-sm md:text-base leading-relaxed;
+  }
+  
   .text-small {
     @apply text-sm leading-normal;
   }
   
-  /* Custom button styles */
+  .text-xs {
+    @apply text-xs leading-normal;
+  }
+  
+  /* Text emphasis classes */
+  .text-emphasis {
+    @apply font-medium;
+  }
+  
+  .text-subtle {
+    @apply text-muted-foreground;
+  }
+  
+  /* Enhanced button system */
   .btn-gold {
-    @apply bg-accent text-accent-foreground hover:bg-accent/90 transition-colors;
+    @apply bg-accent text-accent-foreground hover:bg-accent/90 transition-colors shadow-sm hover:shadow;
   }
   
   .btn-dark {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-colors;
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm hover:shadow;
   }
   
-  /* Card styles with subtle border */
+  .btn-ghost {
+    @apply bg-transparent text-foreground hover:bg-accent/10 transition-colors;
+  }
+  
+  .btn-outline {
+    @apply bg-transparent border border-border text-foreground hover:bg-muted transition-colors;
+  }
+  
+  .btn-subtle {
+    @apply bg-muted text-muted-foreground hover:bg-muted/70 transition-colors;
+  }
+  
+  .btn-with-icon {
+    @apply inline-flex items-center gap-2;
+  }
+  
+  /* Enhanced card styles */
   .card-elegant {
-    @apply bg-card text-card-foreground border border-border/50 rounded-lg shadow-sm;
+    @apply bg-card text-card-foreground border border-border/50 rounded-lg shadow-sm hover:shadow-md transition-all duration-200;
+  }
+  
+  .card-flat {
+    @apply bg-card text-card-foreground border border-border/30 rounded-lg;
+  }
+  
+  .card-glass {
+    @apply bg-card/80 backdrop-blur-sm text-card-foreground border border-border/20 rounded-lg shadow-sm;
+  }
+  
+  .card-hover {
+    @apply hover:border-accent/30 hover:shadow-md transition-all duration-200;
   }
   
   /* For minimalist dividers */
   .divider {
     @apply w-full h-px bg-border my-6;
+  }
+  
+  .divider-subtle {
+    @apply w-full h-px bg-border/40 my-4;
+  }
+  
+  /* Utility classes for transitions */
+  .transition-standard {
+    @apply transition-all duration-200 ease-in-out;
   }
   
   /* For timeline elements like in the Miyazaki filmography */

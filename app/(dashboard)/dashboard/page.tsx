@@ -4,7 +4,6 @@ import { useMemo } from 'react';
 import { 
   Users, 
   Calendar, 
-  LineChart, 
   Activity,
   Clock,
   LucideIcon,
@@ -19,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Appointment, Client } from '@/types';
 import { useBusinessData } from '@/lib/hooks/useBusinessData';
+import { useAuth } from '@/lib/auth/authContext';
 import { getBusinessAppointments, getBusinessClients } from '@/lib/api';
 import { BookingLinkCard } from '@/components/dashboard/booking-link-card';
 import { getTodayAppointments } from '@/lib/utils/date-utils';
@@ -27,10 +27,6 @@ import { cn } from '@/lib/utils';
 // Create the dashboard skeleton component
 const DashboardSkeleton = () => (
   <div className="space-y-6">
-    <div>
-      <div className="h-8 w-64 bg-accent/5 rounded animate-pulse mb-2"></div>
-      <div className="h-4 w-48 bg-accent/5 rounded animate-pulse"></div>
-    </div>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
       {[1, 2, 3, 4].map(i => (
         <Card key={i} className="border border-accent/10">
@@ -82,24 +78,24 @@ interface StatCardProps {
   trend?: 'up' | 'down' | 'neutral';
 }
 
-// Extract stat card into reusable component
+// Extract stat card into reusable component with more professional colors
 const StatCard = ({ title, value, subtitle, icon: Icon, trend = 'neutral' }: StatCardProps) => (
-  <Card>
-    <CardHeader className="flex flex-row items-center justify-between pb-2">
-      <CardTitle className="text-sm font-medium text-muted-foreground">
+  <Card className="bg-white border border-gray-100 shadow-sm hover:shadow transition-all duration-300 relative">
+    <CardHeader className="flex flex-row items-center justify-between pb-2 pt-5">
+      <CardTitle className="text-sm font-medium text-gray-500">
         {title}
       </CardTitle>
-      <div className="h-8 w-8 rounded-md bg-accent/10 flex items-center justify-center">
-        <Icon className="h-4 w-4 text-accent" />
+      <div className="h-9 w-9 rounded-full bg-gray-50 flex items-center justify-center text-gray-400">
+        <Icon className="h-5 w-5" />
       </div>
     </CardHeader>
     <CardContent>
-      <div className="text-2xl font-bold">{value}</div>
+      <div className="text-2xl font-bold text-gray-800">{value}</div>
       <p className={cn(
-        "text-xs mt-1 flex items-center gap-1",
-        trend === 'up' ? 'text-emerald-500' : 
-        trend === 'down' ? 'text-rose-500' : 
-        'text-muted-foreground'
+        "text-xs mt-2 flex items-center gap-1",
+        trend === 'up' ? 'text-green-600' : 
+        trend === 'down' ? 'text-red-600' : 
+        'text-gray-500'
       )}>
         {subtitle}
       </p>
@@ -113,7 +109,7 @@ interface RecentBookingsProps {
   clients: Client[];
 }
 
-// Extract recent bookings list to separate component
+// Extract recent bookings list to separate component with professional colors
 const RecentBookings = ({ appointments, clients }: RecentBookingsProps) => {
   // Get most recent appointments by sorting
   const recentAppointments = useMemo(() => {
@@ -123,47 +119,59 @@ const RecentBookings = ({ appointments, clients }: RecentBookingsProps) => {
   }, [appointments]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent Bookings</CardTitle>
-        <CardDescription>
-          Your most recent appointment bookings
-        </CardDescription>
+    <Card className="bg-white border border-gray-100 shadow-sm">
+      <CardHeader className="flex justify-between items-start border-b border-gray-100 pb-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <CardTitle className="text-gray-800">Recent Bookings</CardTitle>
+          </div>
+          <CardDescription className="text-gray-500">Your most recent appointment bookings</CardDescription>
+        </div>
+        <Button variant="ghost" size="sm" className="text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all">
+          View All
+        </Button>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+      <CardContent className="pt-5">
+        <div className="space-y-3">
           {recentAppointments.length > 0 ? (
             recentAppointments.map((appointment: Appointment) => {
               const apptClient = clients.find((c: Client) => c.id === appointment.clientId);
               const apptDate = new Date(appointment.date);
               
               return (
-                <div key={appointment.id} className="flex items-center justify-between group">
+                <div key={appointment.id} className="flex items-center justify-between group hover:bg-gray-50 p-2 rounded-md transition-colors cursor-pointer">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-md bg-accent/10 border border-accent/20 flex items-center justify-center text-accent group-hover:bg-accent/20 transition-colors">
-                      <span className="text-sm font-medium">
+                    <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                      <span className="text-sm font-medium text-gray-600">
                         {apptClient?.name.charAt(0) || 'C'}
                       </span>
                     </div>
                     <div>
-                      <p className="text-sm font-medium">{apptClient?.name || 'Client'}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Мар {apptDate.getDate()} • {appointment.startTime.replace(/^0+/, '')} AM
-                      </p>
+                      <p className="text-sm font-medium text-gray-800">{apptClient?.name || 'Client'}</p>
+                      <div className="flex items-center text-xs text-gray-500">
+                        <Calendar className="h-3 w-3 mr-1 text-gray-400" />
+                        <span>Map {apptDate.getDate()} • </span>
+                        <Clock className="h-3 w-3 mx-1 text-gray-400" />
+                        <span>{appointment.startTime}</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-sm font-medium">
+                  <div className="text-sm font-medium text-gray-800">
                     ₸ {appointment.price.toLocaleString()}
                   </div>
                 </div>
               );
             })
           ) : (
-            <div className="flex flex-col items-center justify-center py-6 text-center">
-              <div className="w-12 h-12 rounded-md bg-accent/5 flex items-center justify-center mb-3">
-                <Calendar className="h-6 w-6 text-accent/70" />
+            <div className="flex flex-col items-center justify-center py-8 text-center bg-gray-50 rounded-lg">
+              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center mb-3">
+                <Calendar className="h-6 w-6 text-gray-500" />
               </div>
-              <p className="text-sm text-muted-foreground">No recent bookings found</p>
+              <p className="text-sm font-medium text-gray-800">No recent bookings found</p>
+              <p className="text-xs text-gray-500 mt-1">Your recent bookings will appear here</p>
+              <Button variant="outline" size="sm" className="mt-4 bg-white text-gray-700 border-gray-200 hover:bg-gray-50">
+                Create New Booking
+              </Button>
             </div>
           )}
         </div>
@@ -173,6 +181,9 @@ const RecentBookings = ({ appointments, clients }: RecentBookingsProps) => {
 };
 
 export default function DashboardPage() {
+  // Get user data from auth context
+  const { user } = useAuth();
+  
   // Use our custom hook with proper error handling and caching
   const { 
     data: appointments = [], 
@@ -270,14 +281,7 @@ export default function DashboardPage() {
   }
   
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col space-y-1.5">
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back! Here's what's happening with your business today.
-        </p>
-      </div>
-      
+    <div className="space-y-8 pt-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard 
           title="Total Appointments" 

@@ -9,13 +9,19 @@ module.exports = {
     theme: {
       extend: {
         colors: {
-          // Добавляем цвета Pawly для прямого использования
+          // Brand color palette
+          "gold": "#F5DA6B",
+          "gold-light": "#F8E7A5",
+          "gold-dark": "#E4BC5D",
+          "dark": "#090B0B",
+          "off-white": "#F9F8F6",
+          // Legacy colors maintained for compatibility
           "pawly-light-blue": "#C9DDEE",
           "pawly-dark-blue": "#27568B",
           "pawly-teal": "#47A1C4",
           "pawly-amber": "#B68250",
-          // Add a solid accent color for booking form
-          "accent": "#F5DA6B", // Yellow accent color
+          // Primary accent color
+          "accent": "#F5DA6B" // Gold accent color
           // Эти цвета используются в соответствии с CSS-переменными
           border: "hsl(var(--border))",
           input: "hsl(var(--input))",

@@ -54,60 +54,78 @@ export function BookingLinkCard() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-start gap-3">
-          <div className="h-9 w-9 rounded-md bg-accent/10 flex items-center justify-center">
-            <Share className="h-5 w-5 text-accent" />
-          </div>
-          <div>
-            <CardTitle>Your Booking Link</CardTitle>
-            <CardDescription>
-              Share this link with your clients so they can book appointments
-            </CardDescription>
+    <Card className="bg-white border border-gray-100 shadow-sm overflow-hidden">
+      <CardHeader className="border-b border-gray-100 pb-4">
+        <div className="flex justify-between items-start">
+          <div className="flex items-start gap-2">
+            <div className="h-9 w-9 rounded-md bg-gray-50 flex items-center justify-center text-gray-400">
+              <Share className="h-5 w-5" />
+            </div>
+            <div>
+              <CardTitle className="text-gray-800">Your Booking Link</CardTitle>
+              <CardDescription className="text-gray-500">
+                Share this link with your clients so they can book appointments
+              </CardDescription>
+            </div>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-5">
-          <div className="flex items-center relative">
+      <CardContent className="pt-5">
+        <div className="space-y-4">
+          <div className="flex items-center">
             <Input 
               value={bookingLink} 
               readOnly 
-              className="pr-24 bg-accent/5 border-accent/20 focus:border-accent/30 h-10"
+              className="bg-white border-gray-200 h-10 rounded-md text-sm pr-20"
             />
             <Button 
               onClick={copyToClipboard} 
-              variant={copied ? "outline" : "ghost"} 
+              variant="ghost" 
               size="sm" 
-              className={`absolute right-1 h-8 ${copied ? 'border-accent/30 text-accent' : 'hover:bg-accent/10'}`}
+              className="ml-2 text-gray-600 hover:text-gray-800 h-8 px-2 hover:bg-gray-50"
             >
               <Copy className="h-4 w-4 mr-1.5" />
-              {copied ? 'Copied!' : 'Copy'}
+              Copy
             </Button>
           </div>
           
-          <div className="flex gap-3">
+          <div className="grid grid-cols-2 gap-2">
             <Button 
               onClick={shareLink}
               variant="outline" 
-              className="flex-1 border-accent/20 hover:border-accent/30 hover:bg-accent/5"
+              className="bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
             >
-              <Share className="h-4 w-4 mr-2 text-accent" />
+              <Share className="h-4 w-4 mr-2 text-gray-500" />
               Share Link
             </Button>
             
             <Button 
               onClick={() => window.open(bookingLink, '_blank')}
               variant="default" 
-              className="flex-1 bg-accent hover:bg-accent/90"
+              className="bg-gray-800 hover:bg-gray-700 text-white border-0"
             >
               <ExternalLink className="h-4 w-4 mr-2" />
               Open Page
             </Button>
           </div>
+          
+          <div className="pt-3 border-t border-gray-100 mt-4">
+            <div className="flex justify-between items-center">
+              <div className="text-xs text-gray-500">
+                <span className="font-medium">Pro tip:</span> Embed this booking link on your website
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs text-gray-600 hover:bg-gray-50 hover:text-gray-800"
+                onClick={() => toast.success('Embedding instructions are coming soon!')}
+              >
+                Learn how
+              </Button>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
   );
-} 
+}

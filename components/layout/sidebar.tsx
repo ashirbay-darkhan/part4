@@ -7,19 +7,20 @@ import {
   Users, 
   ChevronDown, 
   LineChart, 
-  ShoppingBag, 
   Calendar,
   LogOut,
   Menu,
   X,
   Scissors,
-  LayoutDashboard,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  UserPlus,
+  LayoutGrid
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/authContext';
 import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
 
 interface SidebarItemProps {
   href: string;
@@ -29,6 +30,7 @@ interface SidebarItemProps {
   hasSubMenu?: boolean;
   isOpen?: boolean;
   onClick?: () => void;
+  badge?: number | string;
 }
 
 const SidebarItem = ({
@@ -39,49 +41,82 @@ const SidebarItem = ({
   hasSubMenu = false,
   isOpen = false,
   onClick,
+  badge
 }: SidebarItemProps) => {
   return (
     <Link
       href={href}
       onClick={onClick}
       className={cn(
-        'flex items-center justify-between py-3 px-4 text-sm transition-all duration-200 relative',
+        'flex items-center justify-between py-1.5 px-3 text-xs transition-all duration-200 relative group rounded-md mx-1 my-0.5',
         isActive
-          ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-          : 'hover:bg-sidebar-primary/10 text-sidebar-foreground/90'
+          ? 'bg-sidebar-primary/20 text-sidebar-primary'
+          : 'hover:bg-sidebar-primary/10 text-sidebar-foreground/90 hover:text-sidebar-foreground'
       )}
     >
       <div className="flex items-center gap-3">
         <div className={cn(
           "transition-colors duration-200",
-          isActive ? "text-sidebar-primary-foreground" : "text-sidebar-primary/90"
+          isActive ? "text-sidebar-primary" : "text-sidebar-primary/70"
         )}>
           {icon}
         </div>
         <span>{label}</span>
       </div>
-      {hasSubMenu && (
-        <ChevronDown
-          className={cn(
-            'h-4 w-4 transition-transform duration-200',
-            isOpen ? 'rotate-180' : '',
-            isActive ? "text-sidebar-primary-foreground" : "text-sidebar-primary/90"
-          )}
-        />
+      <div className="flex items-center">
+        {badge && (
+          <span className="bg-sidebar-primary/20 text-sidebar-primary text-xs px-1.5 py-0.5 rounded-full mr-2">
+            {badge}
+          </span>
+        )}
+        {hasSubMenu && (
+          <ChevronDown
+            className={cn(
+              'h-4 w-4 transition-transform duration-200',
+              isOpen ? 'rotate-180' : '',
+              isActive ? "text-sidebar-primary" : "text-sidebar-primary/70"
+            )}
+          />
+        )}
+      </div>
+      
+      {/* Active indicator */}
+      {isActive && (
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-sidebar-primary rounded-r-full"></div>
       )}
+
+      {/* Hover indicator */}
+      <div className={cn(
+        "absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-sidebar-primary/50 rounded-r-full opacity-0 transition-opacity duration-200",
+        isActive ? "opacity-0" : "group-hover:opacity-100"
+      )}></div>
     </Link>
   );
 };
+
+// Submenu item component
+const SubMenuItem = ({ href, label, isActive }: { href: string; label: string; isActive: boolean }) => (
+  <Link
+    href={href}
+    className={cn(
+      'block py-1 pl-9 pr-3 text-xs transition-colors duration-200 rounded-md mx-1',
+      isActive
+        ? 'bg-sidebar-primary/10 text-sidebar-primary'
+        : 'hover:bg-sidebar-primary/5 text-sidebar-foreground/80 hover:text-sidebar-foreground'
+    )}
+  >
+    {label}
+  </Link>
+);
 
 interface MiniCalendarProps {
   onDateSelect: (date: Date) => void;
 }
 
-// Mini Calendar Component
+// Mini Calendar Component with enhanced styling
 const MiniCalendar = ({ onDateSelect }: MiniCalendarProps) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [monthYear, setMonthYear] = useState({ month: currentDate.getMonth(), year: currentDate.getFullYear() });
   
   // Get current month and year
   const month = currentDate.getMonth();
@@ -185,40 +220,18 @@ const MiniCalendar = ({ onDateSelect }: MiniCalendarProps) => {
   };
   
   return (
-    <div className="px-4 pb-3 pt-3 border-b border-sidebar-border/20 bg-transparent">
-      <div className="flex justify-between items-center mb-3">
-        <div className="text-sidebar-primary text-base font-medium capitalize">
-          {capitalize(getMonthNameInLanguage(currentDate))} {year}
-        </div>
-        <div className="flex space-x-1.5">
-          <button 
-            onClick={goToPrevMonth}
-            className="p-1 hover:bg-sidebar-accent/15 rounded-full transition-colors text-sidebar-foreground/70 hover:text-sidebar-foreground"
-          >
-            <ChevronLeft className="h-3.5 w-3.5" />
-          </button>
-          <button 
-            onClick={goToNextMonth}
-            className="p-1 hover:bg-sidebar-accent/15 rounded-full transition-colors text-sidebar-foreground/70 hover:text-sidebar-foreground"
-          >
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
-      
-      {/* Day labels */}
-      <div className="grid grid-cols-7 mb-2 text-xs text-sidebar-foreground/50">
-        <div className="text-center">вс</div>
-        <div className="text-center">пн</div>
-        <div className="text-center">вт</div>
-        <div className="text-center">ср</div>
-        <div className="text-center">чт</div>
-        <div className="text-center">пт</div>
-        <div className="text-center">сб</div>
-      </div>
-      
-      {/* Calendar grid - modify button sizes */}
-      <div className="grid grid-cols-7 gap-1">
+    <div className="px-4 pb-3 pt-3 border-b border-sidebar-border/20 bg-sidebar-primary/5 rounded-lg mx-2 my-2">
+      {/* Calendar grid with larger cells */}
+      <div className="grid grid-cols-7 gap-1 mb-3">
+        {/* Day labels */}
+        <div className="text-center text-[10px] text-sidebar-foreground/50 mb-1">вс</div>
+        <div className="text-center text-[10px] text-sidebar-foreground/50 mb-1">пн</div>
+        <div className="text-center text-[10px] text-sidebar-foreground/50 mb-1">вт</div>
+        <div className="text-center text-[10px] text-sidebar-foreground/50 mb-1">ср</div>
+        <div className="text-center text-[10px] text-sidebar-foreground/50 mb-1">чт</div>
+        <div className="text-center text-[10px] text-sidebar-foreground/50 mb-1">пт</div>
+        <div className="text-center text-[10px] text-sidebar-foreground/50 mb-1">сб</div>
+        
         {/* Previous month days */}
         {Array.from({ length: daysFromPrevMonth }).map((_, index) => {
           const day = daysInPrevMonth - daysFromPrevMonth + index + 1;
@@ -228,7 +241,7 @@ const MiniCalendar = ({ onDateSelect }: MiniCalendarProps) => {
           return (
             <button
               key={`prev-${index}`}
-              className="h-6 w-6 text-center text-xs opacity-40 hover:opacity-60 text-sidebar-foreground/70 hover:bg-sidebar-accent/5 rounded-full transition-all"
+              className="h-6 w-6 text-center text-[10px] opacity-40 hover:opacity-60 text-sidebar-foreground/70 hover:bg-sidebar-accent/5 rounded-full transition-all"
               onClick={() => handleDateClick(prevYear, prevMonth, day)}
             >
               {day}
@@ -246,8 +259,8 @@ const MiniCalendar = ({ onDateSelect }: MiniCalendarProps) => {
             <button
               key={`current-${index}`}
               className={cn(
-                "h-6 w-6 text-center text-xs rounded-full flex items-center justify-center transition-all",
-                isCurrentDay && !isSelectedDay && "text-sidebar-foreground font-bold",
+                "h-6 w-6 text-center text-[11px] rounded-full flex items-center justify-center transition-all",
+                isCurrentDay && !isSelectedDay && "text-sidebar-foreground font-bold ring-1 ring-sidebar-primary/30",
                 isSelectedDay && "bg-sidebar-primary text-sidebar-primary-foreground font-bold",
                 !isCurrentDay && !isSelectedDay && "hover:bg-sidebar-accent/15 text-sidebar-foreground/90 hover:text-sidebar-foreground"
               )}
@@ -267,13 +280,34 @@ const MiniCalendar = ({ onDateSelect }: MiniCalendarProps) => {
           return (
             <button
               key={`next-${index}`}
-              className="h-6 w-6 text-center text-xs opacity-40 hover:opacity-60 text-sidebar-foreground/70 hover:bg-sidebar-accent/5 rounded-full transition-all"
+              className="h-6 w-6 text-center text-[10px] opacity-40 hover:opacity-60 text-sidebar-foreground/70 hover:bg-sidebar-accent/5 rounded-full transition-all"
               onClick={() => handleDateClick(nextYear, nextMonth, day)}
             >
               {day}
             </button>
           );
         })}
+      </div>
+      
+      {/* Month/Year and Navigation at the bottom */}
+      <div className="flex justify-between items-center">
+        <div className="text-sidebar-primary text-sm font-medium capitalize">
+          {capitalize(getMonthNameInLanguage(currentDate))} {year}
+        </div>
+        <div className="flex space-x-1">
+          <button 
+            onClick={goToPrevMonth}
+            className="p-0.5 hover:bg-sidebar-accent/15 rounded-full transition-colors text-sidebar-foreground/70 hover:text-sidebar-foreground"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+          </button>
+          <button 
+            onClick={goToNextMonth}
+            className="p-0.5 hover:bg-sidebar-accent/15 rounded-full transition-colors text-sidebar-foreground/70 hover:text-sidebar-foreground"
+          >
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -286,6 +320,7 @@ export function Sidebar() {
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
     staff: false,
     clients: false,
+    analytics: false,
   });
 
   const toggleMenu = (menu: string) => {
@@ -333,12 +368,15 @@ export function Sidebar() {
       >
         {/* Inner content container with flex layout */}
         <div className="flex flex-col h-full">
-          {/* Logo/Title Section */}
-          <div className="px-4 pt-5 pb-4 flex items-center justify-between">
-            <h1 className="text-lg font-medium text-sidebar-primary truncate">
-              {user?.businessName || 'Pied piper'}
-            </h1>
-            <div className="h-7 w-7 rounded-full bg-sidebar-primary/10 flex items-center justify-center">
+          {/* Compact Logo/Title Section */}
+          <div className="px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <h1 className="text-sm font-bold text-sidebar-primary truncate">
+                {user?.businessName || 'Pied piper'}
+              </h1>
+              <span className="text-xs text-sidebar-foreground/70">Booking</span>
+            </div>
+            <div className="h-6 w-6 rounded-full bg-sidebar-primary/10 flex items-center justify-center border border-sidebar-primary/30">
               <span className="text-xs font-medium text-sidebar-primary">Pro</span>
             </div>
           </div>
@@ -348,11 +386,14 @@ export function Sidebar() {
             <MiniCalendar onDateSelect={handleDateSelect} />
           </div>
 
+          {/* Removed Navigation Menu Section Title to save space */}
+          <div className="my-1"></div>
+
           {/* Navigation Menu - Scrollable */}
-          <div className="flex-grow overflow-y-auto pt-1">
+          <div className="flex-grow overflow-y-auto pt-1 space-y-0">
             <SidebarItem
               href="/dashboard"
-              icon={<LayoutDashboard className="h-5 w-5" />}
+              icon={<LayoutGrid className="h-5 w-5" />}
               label="Dashboard"
               isActive={pathname === '/dashboard'}
             />
@@ -369,6 +410,7 @@ export function Sidebar() {
               icon={<Users className="h-5 w-5" />}
               label="Staff"
               isActive={pathname.includes('/staff') && !pathname.includes('/calendar')}
+              badge={5}
             />
 
             <SidebarItem
@@ -380,39 +422,90 @@ export function Sidebar() {
 
             <SidebarItem
               href="/clients"
-              icon={<Users className="h-5 w-5" />}
+              icon={<UserPlus className="h-5 w-5" />}
               label="Clients"
-              isActive={pathname.includes('/clients')}
+              isActive={pathname.includes('/clients') && !openMenus.clients}
               hasSubMenu={true}
               isOpen={openMenus.clients}
               onClick={() => toggleMenu('clients')}
+              badge={3}
             />
 
+            {/* Client submenu */}
+            {openMenus.clients && (
+              <div className="pb-0.5 text-sidebar-foreground/80">
+                <SubMenuItem 
+                  href="/clients/active" 
+                  label="Active Clients" 
+                  isActive={pathname.includes('/clients/active')} 
+                />
+                <SubMenuItem 
+                  href="/clients/new" 
+                  label="New Clients" 
+                  isActive={pathname.includes('/clients/new')} 
+                />
+                <SubMenuItem 
+                  href="/clients/inactive" 
+                  label="Inactive Clients" 
+                  isActive={pathname.includes('/clients/inactive')} 
+                />
+              </div>
+            )}
+
+            {/* Analytics section with improved submenu */}
             <SidebarItem
               href="/analytics"
               icon={<LineChart className="h-5 w-5" />}
               label="Analytics"
-              isActive={pathname.includes('/analytics')}
+              isActive={pathname.includes('/analytics') && !openMenus.analytics}
+              hasSubMenu={true}
+              isOpen={openMenus.analytics}
+              onClick={() => toggleMenu('analytics')}
             />
+            
+            {/* Analytics submenu */}
+            {openMenus.analytics && (
+              <div className="pb-0.5 text-sidebar-foreground/80">
+                <SubMenuItem 
+                  href="/analytics/revenue" 
+                  label="Revenue" 
+                  isActive={pathname.includes('/analytics/revenue')} 
+                />
+                <SubMenuItem 
+                  href="/analytics/clients" 
+                  label="Client Analytics" 
+                  isActive={pathname.includes('/analytics/clients')} 
+                />
+                <SubMenuItem 
+                  href="/analytics/services" 
+                  label="Popular Services" 
+                  isActive={pathname.includes('/analytics/services')} 
+                />
+              </div>
+            )}
+            
+            {/* Removed Settings link to save space */}
           </div>
 
           {/* User Profile - Fixed at bottom */}
-          <div className="border-t border-sidebar-border/20 px-4 py-3.5 bg-black mt-1">
-            <div className="flex items-center space-x-3">
-              <div className="w-7 h-7 rounded-full bg-sidebar-primary/10 border border-sidebar-border/20 flex items-center justify-center">
+          <div className="border-t border-sidebar-border/20 px-3 py-2 mt-1 bg-sidebar-primary/5">
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 rounded-full bg-sidebar-primary/10 border border-sidebar-border/20 flex items-center justify-center">
                 <span className="text-xs font-medium text-sidebar-foreground">
                   {user?.email?.[0]?.toUpperCase() || 'R'}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-sidebar-primary/80 text-xs truncate">{user?.email || 'richard@gmail.com'}</div>
+                <div className="text-sidebar-foreground text-xs truncate">{user?.name || 'Richard H.'}</div>
+                <div className="text-sidebar-foreground/60 text-[10px] truncate">{user?.email || 'richard@gmail.com'}</div>
               </div>
               <div className="flex items-center">
                 <button
                   onClick={handleLogout}
-                  className="text-sidebar-primary/80 hover:text-sidebar-primary transition-colors"
+                  className="text-sidebar-foreground/60 hover:text-sidebar-primary transition-colors hover:bg-sidebar-primary/10 rounded-full h-6 w-6 flex items-center justify-center"
+                  title="Logout"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>
@@ -430,4 +523,3 @@ export function Sidebar() {
     </>
   );
 }
-
