@@ -27,10 +27,6 @@ interface SidebarItemProps {
   icon: React.ReactNode;
   label: string;
   isActive: boolean;
-  hasSubMenu?: boolean;
-  isOpen?: boolean;
-  onClick?: () => void;
-  badge?: number | string;
 }
 
 const SidebarItem = ({
@@ -38,17 +34,12 @@ const SidebarItem = ({
   icon,
   label,
   isActive,
-  hasSubMenu = false,
-  isOpen = false,
-  onClick,
-  badge
 }: SidebarItemProps) => {
   return (
     <Link
       href={href}
-      onClick={onClick}
       className={cn(
-        'flex items-center justify-between py-1.5 px-3 text-xs transition-all duration-200 relative group rounded-md mx-1 my-0.5',
+        'flex items-center justify-between py-2.5 px-4 text-sm transition-all duration-200 relative group rounded-md mx-1 my-1',
         isActive
           ? 'bg-sidebar-primary/20 text-sidebar-primary'
           : 'hover:bg-sidebar-primary/10 text-sidebar-foreground/90 hover:text-sidebar-foreground'
@@ -62,22 +53,6 @@ const SidebarItem = ({
           {icon}
         </div>
         <span>{label}</span>
-      </div>
-      <div className="flex items-center">
-        {badge && (
-          <span className="bg-sidebar-primary/20 text-sidebar-primary text-xs px-1.5 py-0.5 rounded-full mr-2">
-            {badge}
-          </span>
-        )}
-        {hasSubMenu && (
-          <ChevronDown
-            className={cn(
-              'h-4 w-4 transition-transform duration-200',
-              isOpen ? 'rotate-180' : '',
-              isActive ? "text-sidebar-primary" : "text-sidebar-primary/70"
-            )}
-          />
-        )}
       </div>
       
       {/* Active indicator */}
@@ -317,25 +292,12 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
-  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
-    staff: false,
-    clients: false,
-    analytics: false,
-  });
-
-  const toggleMenu = (menu: string) => {
-    setOpenMenus((prev) => ({
-      ...prev,
-      [menu]: !prev[menu],
-    }));
-  };
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     router.push('/login');
   };
-
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   // Handle date selection from mini calendar
   const handleDateSelect = (date: Date) => {
@@ -393,68 +355,42 @@ export function Sidebar() {
           <div className="flex-grow overflow-y-auto pt-1 space-y-0">
             <SidebarItem
               href="/dashboard"
-              icon={<LayoutGrid className="h-5 w-5" />}
+              icon={<LayoutGrid className="h-6 w-6" />}
               label="Dashboard"
               isActive={pathname === '/dashboard'}
             />
 
             <SidebarItem
               href="/services"
-              icon={<Scissors className="h-5 w-5" />}
+              icon={<Scissors className="h-6 w-6" />}
               label="Services"
               isActive={pathname.includes('/services')}
             />
 
             <SidebarItem
               href="/staff"
-              icon={<Users className="h-5 w-5" />}
+              icon={<Users className="h-6 w-6" />}
               label="Staff"
               isActive={pathname.includes('/staff') && !pathname.includes('/calendar')}
-              badge={5}
             />
 
             <SidebarItem
               href="/calendar"
-              icon={<Calendar className="h-5 w-5" />}
+              icon={<Calendar className="h-6 w-6" />}
               label="Calendar"
               isActive={pathname.includes('/calendar')}
             />
 
             <SidebarItem
               href="/clients"
-              icon={<UserPlus className="h-5 w-5" />}
+              icon={<UserPlus className="h-6 w-6" />}
               label="Clients"
-              isActive={pathname.includes('/clients') && !openMenus.clients}
-              hasSubMenu={true}
-              isOpen={openMenus.clients}
-              onClick={() => toggleMenu('clients')}
-              badge={3}
+              isActive={pathname.includes('/clients')}
             />
-
-            {/* Client submenu */}
-            {openMenus.clients && (
-              <div className="pb-0.5 text-sidebar-foreground/80">
-                <SubMenuItem 
-                  href="/clients/active" 
-                  label="Active Clients" 
-                  isActive={pathname.includes('/clients/active')} 
-                />
-                <SubMenuItem 
-                  href="/clients/new" 
-                  label="New Clients" 
-                  isActive={pathname.includes('/clients/new')} 
-                />
-                <SubMenuItem 
-                  href="/clients/inactive" 
-                  label="Inactive Clients" 
-                  isActive={pathname.includes('/clients/inactive')} 
-                />
-              </div>
-            )}
 
             <SidebarItem
               href="/analytics"
-              icon={<LineChart className="h-5 w-5" />}
+              icon={<LineChart className="h-6 w-6" />}
               label="Analytics"
               isActive={pathname.includes('/analytics')}
             />
