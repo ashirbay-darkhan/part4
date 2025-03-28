@@ -1,0 +1,29 @@
+Fix for app/(dashboard)/analytics/page.tsx syntax error:
+
+The error occurs at line 491 with the message: "Expected ',', got '}'".
+
+Looking at the error context:
+Line 488:     </div>
+Line 489:   );
+Line 490: }
+Line 491:   }, [selectedDateRange, customDateStart, customDateEnd]);
+Line 492: 
+Line 493:   // Filter appointments based on date range and search query
+Line 494:   const filteredAppointments = useMemo(() => {
+
+The issue is that there's a stray closing brace '}' followed by a dependency array on line 491 that appears after the component's main function has already been closed.
+
+Fix:
+1. Simply remove line 491:   }, [selectedDateRange, customDateStart, customDateEnd]);
+2. This appears to be a fragment of a useCallback or useMemo hook that was incorrectly placed outside of the component.
+3. The getDateRange function already has its proper dependency array defined earlier in the file.
+
+After fixing, the code should look like:
+Line 488:     </div>
+Line 489:   );
+Line 490: }
+Line 491: 
+Line 492:   // Filter appointments based on date range and search query
+Line 493:   const filteredAppointments = useMemo(() => {
+
+ 

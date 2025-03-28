@@ -54,7 +54,7 @@ export function BookingLinkCard() {
   };
 
   return (
-    <Card className="bg-white border border-gray-100 shadow-sm overflow-hidden">
+    <Card className="bg-white border border-gray-100 shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden">
       <CardHeader className="border-b border-gray-100 pb-4">
         <div className="flex justify-between items-start">
           <div className="flex items-start gap-2">

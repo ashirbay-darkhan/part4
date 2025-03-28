@@ -29,7 +29,8 @@ const DashboardSkeleton = () => (
   <div className="space-y-6">
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
       {[1, 2, 3, 4].map(i => (
-        <Card key={i} className="border border-accent/10">
+        <Card key={i} className="border border-accent/10 shadow-md overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-accent/20"></div>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium animate-pulse bg-accent/5 h-4 w-24"></CardTitle>
           </CardHeader>
@@ -41,7 +42,8 @@ const DashboardSkeleton = () => (
       ))}
     </div>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Card className="col-span-1 border border-accent/10">
+      <Card className="col-span-1 border border-accent/10 shadow-md overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-accent/20"></div>
         <CardHeader>
           <CardTitle className="animate-pulse bg-accent/5 h-6 w-36"></CardTitle>
           <CardDescription className="animate-pulse bg-accent/5 h-4 w-64"></CardDescription>
@@ -55,7 +57,8 @@ const DashboardSkeleton = () => (
           ))}
         </CardContent>
       </Card>
-      <Card className="col-span-1 border border-accent/10">
+      <Card className="col-span-1 border border-accent/10 shadow-md overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-accent/20"></div>
         <CardHeader>
           <CardTitle className="animate-pulse bg-accent/5 h-6 w-36"></CardTitle>
           <CardDescription className="animate-pulse bg-accent/5 h-4 w-64"></CardDescription>
@@ -80,19 +83,20 @@ interface StatCardProps {
 
 // Extract stat card into reusable component with more professional colors
 const StatCard = ({ title, value, subtitle, icon: Icon, trend = 'neutral' }: StatCardProps) => (
-  <Card className="bg-white border border-gray-100 shadow-sm hover:shadow transition-all duration-300 relative">
+  <Card className="bg-white border border-gray-100 shadow-md hover:shadow-lg transition-all duration-300 relative overflow-hidden">
+    <div className="absolute top-0 left-0 w-full h-1 bg-accent/20"></div>
     <CardHeader className="flex flex-row items-center justify-between pb-2 pt-5">
-      <CardTitle className="text-sm font-medium text-gray-500">
+      <CardTitle className="text-sm font-medium text-gray-600">
         {title}
       </CardTitle>
-      <div className="h-9 w-9 rounded-full bg-gray-50 flex items-center justify-center text-gray-400">
+      <div className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 shadow-sm">
         <Icon className="h-5 w-5" />
       </div>
     </CardHeader>
     <CardContent>
       <div className="text-2xl font-bold text-gray-800">{value}</div>
       <p className={cn(
-        "text-xs mt-2 flex items-center gap-1",
+        "text-xs mt-2 flex items-center gap-1 font-medium",
         trend === 'up' ? 'text-green-600' : 
         trend === 'down' ? 'text-red-600' : 
         'text-gray-500'
@@ -119,7 +123,7 @@ const RecentBookings = ({ appointments, clients }: RecentBookingsProps) => {
   }, [appointments]);
 
   return (
-    <Card className="bg-white border border-gray-100 shadow-sm">
+    <Card className="bg-white border border-gray-100 shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden">
       <CardHeader className="flex justify-between items-start border-b border-gray-100 pb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">

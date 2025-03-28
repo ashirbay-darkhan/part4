@@ -452,37 +452,12 @@ export function Sidebar() {
               </div>
             )}
 
-            {/* Analytics section with improved submenu */}
             <SidebarItem
               href="/analytics"
               icon={<LineChart className="h-5 w-5" />}
               label="Analytics"
-              isActive={pathname.includes('/analytics') && !openMenus.analytics}
-              hasSubMenu={true}
-              isOpen={openMenus.analytics}
-              onClick={() => toggleMenu('analytics')}
+              isActive={pathname.includes('/analytics')}
             />
-            
-            {/* Analytics submenu */}
-            {openMenus.analytics && (
-              <div className="pb-0.5 text-sidebar-foreground/80">
-                <SubMenuItem 
-                  href="/analytics/revenue" 
-                  label="Revenue" 
-                  isActive={pathname.includes('/analytics/revenue')} 
-                />
-                <SubMenuItem 
-                  href="/analytics/clients" 
-                  label="Client Analytics" 
-                  isActive={pathname.includes('/analytics/clients')} 
-                />
-                <SubMenuItem 
-                  href="/analytics/services" 
-                  label="Popular Services" 
-                  isActive={pathname.includes('/analytics/services')} 
-                />
-              </div>
-            )}
             
             {/* Removed Settings link to save space */}
           </div>

@@ -713,6 +713,19 @@
       "price": 2000,
       "businessId": "1742230321916",
       "id": "tG_pgzS"
+    },
+    {
+      "clientId": "1743147554497",
+      "employeeId": "1742244079841",
+      "serviceId": "1742230995581",
+      "date": "2025-03-28",
+      "startTime": "16:00",
+      "endTime": "17:00",
+      "duration": 60,
+      "status": "Pending",
+      "price": 2000,
+      "businessId": "1742230321916",
+      "id": "0D40UPU"
     }
   ],
   "clients": [
@@ -837,6 +850,14 @@
       "id": "1743138675006",
       "name": "new asdf",
       "phone": "+774748949",
+      "email": "",
+      "totalVisits": 0,
+      "businessId": "1742230321916"
+    },
+    {
+      "id": "1743147554497",
+      "name": "qweqw",
+      "phone": "12312312",
       "email": "",
       "totalVisits": 0,
       "businessId": "1742230321916"

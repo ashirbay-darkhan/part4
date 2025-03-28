@@ -147,7 +147,7 @@ export function ServicesList({ services, isLoading, onEdit, onDelete }: Services
 
 function ServiceCardSkeleton() {
   return (
-    <Card className="animate-pulse overflow-hidden">
+    <Card className="animate-pulse overflow-hidden shadow-md">
       <div className="h-48 bg-slate-200 dark:bg-slate-700 w-full"></div>
       <CardHeader className="pb-2">
         <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-2/3 mb-2"></div>
@@ -197,7 +197,7 @@ function ServiceCard({ service, onEdit, onDelete }: {
   onDelete: (service: Service) => void
 }) {
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden shadow-md hover:shadow-lg transition-all duration-300">
       {service.imageUrl ? (
         <div className="w-full h-48 overflow-hidden">
           <img 
