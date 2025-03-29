@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, ChevronLeft, Clock, User, Phone, Mail, MessageSquare, Calendar as CalendarIcon, Check, Info, ArrowLeft, Star, ChevronDown } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Clock, User, Phone, Mail, MessageSquare, Calendar, Check, Info, ArrowLeft, Star, ChevronDown } from 'lucide-react';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, parseISO } from 'date-fns';
 import { createAppointment } from '@/lib/api';
+import { Button } from '@/components/ui/button';
 
 // Custom calendar component
 interface CustomCalendarProps {
@@ -88,66 +89,71 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ selectedDate, onDateCha
   
   return (
     <div className="w-full">
-      <div className="flex justify-between items-center mb-2">
+      <div className="flex justify-between items-center mb-4">
         <button
           type="button"
           onClick={prevMonth}
-          className="p-1 rounded-full hover:bg-gray-100"
+          className="p-2 rounded-full hover:bg-gray-100 transition-colors"
           aria-label="Previous month"
         >
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="h-5 w-5 text-gray-600" />
         </button>
         
-        <div className="text-center font-medium">
+        <div className="text-center font-medium text-gray-900">
           {format(currentMonth, 'MMMM yyyy')}
         </div>
         
         <button
           type="button"
           onClick={nextMonth}
-          className="p-1 rounded-full hover:bg-gray-100"
+          className="p-2 rounded-full hover:bg-gray-100 transition-colors"
           aria-label="Next month"
         >
-          <ChevronRight className="h-5 w-5" />
+          <ChevronRight className="h-5 w-5 text-gray-600" />
         </button>
       </div>
       
       {/* Weekday headers */}
-      <div className="flex justify-around mb-2">
+      <div className="grid grid-cols-7 mb-2">
         {weekDays.map(day => (
-          <div key={day} className="w-9 text-center text-gray-500 font-medium text-sm">
+          <div key={day} className="text-center text-gray-500 font-medium text-sm py-2">
             {day}
           </div>
         ))}
       </div>
       
       {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-x-0 gap-y-1 mt-1">
+      <div className="grid grid-cols-7 gap-1">
         
         {/* Calendar days - flattened to ensure proper grid alignment */}
         {weeks.flat().map((day, index) => {
           if (!day) {
             // Empty cell for days not in current month
-            return <div key={`empty-${index}`} className="h-9 w-9 mx-auto" />;
+            return <div key={`empty-${index}`} className="h-10 w-10 mx-auto" />;
           }
           
           const isSelected = isSameDay(day, selectedDate);
           const isDisabledDay = isDisabled(day);
+          const isToday = isSameDay(day, new Date());
           
           return (
-            <button
-              key={`day-${index}`}
-              type="button"
-              className={`h-9 w-9 mx-auto rounded-full flex items-center justify-center text-sm
-                ${isSelected ? 'bg-black text-white' : ''}
-                ${!isSelected && !isDisabledDay ? 'hover:bg-gray-100' : ''}
-                ${isDisabledDay ? 'text-gray-300 cursor-not-allowed' : 'cursor-pointer'}
-              `}
-              onClick={() => !isDisabledDay && onDateChange(day)}
-              disabled={isDisabledDay}
-            >
-              {format(day, 'd')}
-            </button>
+            <div key={`day-${index}`} className="flex items-center justify-center p-1">
+              <button
+                type="button"
+                className={`h-10 w-10 rounded-full flex items-center justify-center text-sm transition-colors
+                  ${isSelected ? 'bg-gray-800 text-white font-medium' : ''}
+                  ${isToday && !isSelected && !isDisabledDay ? 'border border-gray-300' : ''}
+                  ${!isSelected && !isDisabledDay ? 'hover:bg-gray-100' : ''}
+                  ${isDisabledDay ? 'text-gray-300 cursor-not-allowed' : 'cursor-pointer'}
+                `}
+                onClick={() => !isDisabledDay && onDateChange(day)}
+                disabled={isDisabledDay}
+                aria-label={format(day, 'PPP')}
+                aria-selected={isSelected}
+              >
+                {format(day, 'd')}
+              </button>
+            </div>
           );
         })}
       </div>
@@ -200,6 +206,21 @@ interface StaffAvailability {
   slots: TimeSlot[];
 }
 
+// Define an interface for appointments
+interface AppointmentData {
+  id: number | string;
+  clientId: string;
+  employeeId: string; 
+  serviceId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  duration: number;
+  status: string;
+  price: number;
+  businessId: string;
+}
+
 interface EnhancedBookingFormProps {
   businessId: string;
   businessName: string;
@@ -229,6 +250,7 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [availableStaffForDate, setAvailableStaffForDate] = useState<(StaffMember & { availableSlots: string[] })[]>([]);
 
   // Group services by category
   useEffect(() => {
@@ -260,8 +282,8 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
     );
   };
 
-  // Add this function to fetch appointments
-  const fetchAppointments = async (date: string, staffId: string) => {
+  // Update the fetchAppointments function to have a proper return type
+  const fetchAppointments = async (date: string, staffId: string): Promise<AppointmentData[]> => {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       const response = await fetch(
@@ -276,8 +298,8 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
     }
   };
 
-  // Get available time slots for a specific staff member and date
-  const getStaffTimeSlots = (staffId: string, date: string) => {
+  // Update the getStaffTimeSlots function to use AppointmentData
+  const getStaffTimeSlots = async (staffId: string, date: string): Promise<string[]> => {
     // Get the day of week (0-6, where 0 is Sunday)
     const dayOfWeek = new Date(date).getDay();
     // Convert to 1-7 where 1 is Monday
@@ -309,8 +331,19 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
     const breakEnd = workingHours.breakEnd ? 
       workingHours.breakEnd.split(':').map(Number).reduce((h, m) => h * 60 + m, 0) : null;
     
-    // Get all appointments for this staff member on this date
-    const appointments = Object.values(staffAvailability || {})
+    // Fetch actual appointments for this date from the API
+    const existingAppointments = await fetchAppointments(date, staffId);
+    
+    // Map appointments to time ranges
+    const appointmentRanges = existingAppointments.map((apt) => {
+      const [startHour, startMinute] = apt.startTime.split(':').map(Number);
+      const startMinutes = startHour * 60 + startMinute;
+      const endMinutes = startMinutes + apt.duration;
+      return { start: startMinutes, end: endMinutes };
+    });
+    
+    // Also check the staffAvailability data structure for today and tomorrow
+    const localAppointments = Object.values(staffAvailability || {})
       .filter(avail => avail && avail.staffId === staffId && avail.date === date)
       .flatMap(avail => avail.slots || [])
       .filter(slot => !slot.available)
@@ -321,8 +354,11 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
         return { start: startMinutes, end: endMinutes };
       });
     
+    // Combine both appointment sources
+    const allAppointments = [...appointmentRanges, ...localAppointments];
+    
     // Generate all potential time slots for this day (every 30 minutes)
-    const availableSlots = [];
+    const availableSlots: string[] = [];
     const now = new Date();
     const isToday = date === now.toISOString().split('T')[0];
     const currentMinutes = isToday ? (now.getHours() * 60 + now.getMinutes()) : 0;
@@ -352,7 +388,7 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
       }
       
       // Check if slot conflicts with any existing appointment
-      const hasConflict = appointments.some(apt => {
+      const hasConflict = allAppointments.some(apt => {
         return (timeMinutes >= apt.start && timeMinutes < apt.end) || 
                (slotEndMinutes > apt.start && slotEndMinutes <= apt.end) ||
                (timeMinutes <= apt.start && slotEndMinutes >= apt.end);
@@ -368,76 +404,42 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
     return availableSlots;
   };
 
-  // Update useEffect to fetch real appointments
+  // Fix the getAvailableTimeSlotsForDate function
+  const getAvailableTimeSlotsForDate = async (staffId: string, date: Date): Promise<string[]> => {
+    const formattedDate = format(date, 'yyyy-MM-dd');
+    return await getStaffTimeSlots(staffId, formattedDate);
+  };
+
+  // Update useEffect to load staff availability
   useEffect(() => {
-    const loadAppointments = async () => {
-      if (selectedService) {
-        const availabilityData: Record<string, StaffAvailability> = {};
+    const loadStaffAvailability = async () => {
+      if (selectedCalendarDate && staff.length > 0 && selectedService) {
+        const availableStaffArray: (StaffMember & { availableSlots: string[] })[] = [];
         
-        for (const staffMember of staff) {
-          const today = new Date();
-          const tomorrow = new Date(today);
-          tomorrow.setDate(tomorrow.getDate() + 1);
-          
-          const todayString = today.toISOString().split('T')[0];
-          const tomorrowString = tomorrow.toISOString().split('T')[0];
-          
-          // Fetch today's appointments
-          const todayAppointments = await fetchAppointments(todayString, staffMember.id);
-          
-          // Fetch tomorrow's appointments
-          const tomorrowAppointments = await fetchAppointments(tomorrowString, staffMember.id);
-          
-          // Mark slots as not available based on appointments
-          const todaySlots: TimeSlot[] = [];
-          const tomorrowSlots: TimeSlot[] = [];
-          
-          // Process today's appointments
-          todayAppointments.forEach((apt: any) => {
-            const [startHour, startMinute] = apt.startTime.split(':').map(Number);
-            const startMinutes = startHour * 60 + startMinute;
-            const endMinutes = startMinutes + apt.duration;
-            
-            // Create a slot entry for each booked appointment
-            todaySlots.push({
-              time: apt.startTime,
-              available: false
-            });
-          });
-          
-          // Process tomorrow's appointments
-          tomorrowAppointments.forEach((apt: any) => {
-            const [startHour, startMinute] = apt.startTime.split(':').map(Number);
-            const startMinutes = startHour * 60 + startMinute;
-            const endMinutes = startMinutes + apt.duration;
-            
-            // Create a slot entry for each booked appointment
-            tomorrowSlots.push({
-              time: apt.startTime,
-              available: false
-            });
-          });
-          
-          // Store the booked slots for today and tomorrow
-          availabilityData[`${staffMember.id}-${todayString}`] = {
-            staffId: staffMember.id,
-            date: todayString,
-            slots: todaySlots
-          };
-          
-          availabilityData[`${staffMember.id}-${tomorrowString}`] = {
-            staffId: staffMember.id,
-            date: tomorrowString,
-            slots: tomorrowSlots
-          };
+        for (const person of staff) {
+          try {
+            // Only consider staff who provide the selected service
+            if (person.serviceIds && person.serviceIds.includes(selectedService.id)) {
+              const availableSlots = await getAvailableTimeSlotsForDate(person.id, selectedCalendarDate);
+              
+              if (availableSlots.length > 0) {
+                availableStaffArray.push({
+                  ...person,
+                  availableSlots
+                });
+              }
+            }
+          } catch (error) {
+            console.error(`Error loading availability for staff ${person.id}:`, error);
+          }
         }
         
-        setStaffAvailability(availabilityData);
+        setAvailableStaffForDate(availableStaffArray);
       }
     };
-
-    loadAppointments();
-  }, [selectedService, staff, businessId]);
+    
+    loadStaffAvailability();
+  }, [selectedCalendarDate, staff, selectedService, businessId]);
 
   // Handle next step
   const nextStep = async () => {
@@ -558,8 +560,8 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
     return slots;
   };
 
-  // Get earliest available date for a staff member
-  const getEarliestAvailability = (staffId: string) => {
+  // Get earliest available date for a staff member - update to handle async
+  const getEarliestAvailability = async (staffId: string) => {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -567,24 +569,28 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
     const todayString = today.toISOString().split('T')[0];
     const tomorrowString = tomorrow.toISOString().split('T')[0];
     
-    // Check today's availability
-    const todaySlots = getStaffTimeSlots(staffId, todayString);
-    
-    if (todaySlots.length > 0) {
-      return { 
-        date: "today",
-        slots: todaySlots.map(time => ({ time, available: true }))
-      };
-    }
-    
-    // Check tomorrow's availability
-    const tomorrowSlots = getStaffTimeSlots(staffId, tomorrowString);
-    
-    if (tomorrowSlots.length > 0) {
-      return {
-        date: "tomorrow",
-        slots: tomorrowSlots.map(time => ({ time, available: true }))
-      };
+    try {
+      // Check today's availability
+      const todaySlots = await getStaffTimeSlots(staffId, todayString);
+      
+      if (todaySlots.length > 0) {
+        return { 
+          date: "today",
+          slots: todaySlots.map(time => ({ time, available: true }))
+        };
+      }
+      
+      // Check tomorrow's availability
+      const tomorrowSlots = await getStaffTimeSlots(staffId, tomorrowString);
+      
+      if (tomorrowSlots.length > 0) {
+        return {
+          date: "tomorrow",
+          slots: tomorrowSlots.map(time => ({ time, available: true }))
+        };
+      }
+    } catch (error) {
+      console.error("Error getting earliest availability:", error);
     }
     
     return null;
@@ -617,12 +623,6 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
   const handleTimeSelection = (staff: StaffMember, time: string) => {
     setSelectedStaff(staff);
     setSelectedTime(time);
-  };
-  
-  // Get available time slots for a specific date and staff
-  const getAvailableTimeSlotsForDate = (staffId: string, date: Date) => {
-    const formattedDate = format(date, 'yyyy-MM-dd');
-    return getStaffTimeSlots(staffId, formattedDate);
   };
 
   return (
@@ -751,8 +751,8 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
                 
                 {/* Calendar for date selection */}
                 <div className="mb-8">
-                  <h3 className="text-lg font-medium mb-3">Select Date</h3>
-                  <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                  <h3 className="text-lg font-medium text-gray-900 mb-3">Select Date</h3>
+                  <div className="border border-gray-200 rounded-lg p-5 bg-white shadow-sm">
                     <CustomCalendar 
                       selectedDate={selectedCalendarDate}
                       onDateChange={handleCalendarDateChange}
@@ -766,38 +766,46 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
                 
                 {/* Staff List with Availability */}
                 <div className="space-y-6">
-                  {staff
-                    .filter(person => getAvailableTimeSlotsForDate(person.id, selectedCalendarDate).length > 0)
-                    .map((person) => {
+                  {availableStaffForDate.map((person) => {
                     const isSelected = selectedStaff?.id === person.id;
                     
                     return (
                       <div 
                         key={person.id} 
-                        className={`border rounded-md overflow-hidden transition-all
-                          ${isSelected ? 'border-gray-800' : 'border-gray-200'}`}
+                        className={`border rounded-lg shadow-sm overflow-hidden transition-all duration-300
+                          ${isSelected ? 'border-gray-800 ring-1 ring-gray-800' : 'border-gray-200 hover:border-gray-300'}`}
                       >
                         {/* Staff Info */}
-                        <div className="p-4 flex items-start">
+                        <div 
+                          className={`p-4 flex items-start cursor-pointer ${isSelected ? 'bg-gray-50' : 'bg-white'}`}
+                          onClick={() => setSelectedStaff(person)}
+                        >
                           <div className="flex-shrink-0 mr-4">
                             <div className={`w-16 h-16 rounded-full flex items-center justify-center overflow-hidden
                               ${isSelected ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-700'}`}>
                               {person.avatar ? (
                                 <img src={person.avatar} alt={person.name} className="object-cover w-full h-full" />
                               ) : (
-                                <span className="text-lg font-medium">{person.name.split(' ')[0].charAt(0)}</span>
+                                <span className="text-lg font-medium">{person.name.split(' ')[0].charAt(0)}{person.name.split(' ')[1]?.charAt(0) || ''}</span>
                               )}
                             </div>
                           </div>
                           
                           <div className="flex-1">
                             <div className="flex justify-between items-start">
-                              <div onClick={() => setSelectedStaff(person)}>
-                                <h3 className="font-medium text-gray-900">{person.name}</h3>
-                                <p className="text-sm text-gray-500">{person.role || "Specialist"}</p>
+                              <div>
+                                <h3 className="font-medium text-gray-900 text-lg">{person.name}</h3>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full">
+                                    {person.role || "Specialist"}
+                                  </span>
+                                  <span className="text-sm text-gray-500">
+                                    {formatCurrency(selectedService?.price || 0)}
+                                  </span>
+                                </div>
                                 
                                 {person.rating && (
-                                  <div className="flex items-center mt-1">
+                                  <div className="flex items-center mt-2">
                                     <div className="flex text-yellow-400">
                                       {[...Array(5)].map((_, i) => (
                                         <Star key={i} fill="currentColor" className="w-3.5 h-3.5" />
@@ -808,56 +816,62 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
                                     </span>
                                   </div>
                                 )}
-                                
-                                <div className="mt-1">
-                                  <span className="text-gray-900 font-medium">
-                                    {selectedService ? formatCurrency(selectedService.price) : ''}
-                                  </span>
-                                </div>
                               </div>
                               
-                              <div className="ml-4">
-                                <div 
-                                  className={`w-5 h-5 rounded-full border flex items-center justify-center
-                                    ${isSelected ? 'border-gray-800 bg-gray-800' : 'border-gray-300'}`}
-                                  onClick={() => setSelectedStaff(person)}
+                              <div>
+                                <Button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedStaff(person);
+                                  }}
+                                  size="sm"
+                                  variant={isSelected ? "default" : "outline"}
+                                  className={`transition-all ${isSelected ? 'bg-gray-800 text-white hover:bg-gray-700' : 'hover:bg-gray-50'}`}
                                 >
-                                  {isSelected && (
-                                    <div className="w-3 h-3 rounded-full bg-white"></div>
-                                  )}
-                                </div>
+                                  {isSelected ? 'Selected' : 'Select'}
+                                </Button>
                               </div>
                             </div>
-                            
-                            <div className="mt-4">
-                              <div className="mb-2">
-                                <span className="text-sm text-gray-700 font-medium">
-                                  Available times for {format(selectedCalendarDate, 'EEEE, MMMM d')}:
-                                </span>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                {getAvailableTimeSlotsForDate(person.id, selectedCalendarDate).map((time) => {
-                                  const isTimeSelected = isSelected && selectedTime === time;
-                                  return (
-                                    <button
-                                      key={time}
-                                      className={`py-2 px-4 rounded-full text-sm font-medium transition-all
-                                        ${isTimeSelected 
-                                          ? 'bg-black text-white' 
-                                          : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
-                                      onClick={() => handleTimeSelection(person, time)}
-                                    >
-                                      {time}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Available Time Slots */}
+                        <div 
+                          className={`border-t border-gray-200 p-4 transition-all duration-300 ease-in-out
+                            ${isSelected ? 'max-h-[400px] opacity-100 bg-gray-50' : 'max-h-0 opacity-0 overflow-hidden p-0 border-t-0'}`}
+                        >
+                          <h4 className="text-sm font-medium text-gray-700 mb-3">
+                            Available times for {format(selectedCalendarDate, 'EEEE, MMMM d')}:
+                          </h4>
+                          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                            {person.availableSlots.map((time: string) => (
+                              <button
+                                key={time}
+                                className={`text-center py-2 px-1 rounded-md text-sm transition-colors
+                                  ${selectedTime === time && selectedStaff?.id === person.id
+                                    ? 'bg-gray-800 text-white font-medium'
+                                    : 'bg-white border border-gray-200 hover:bg-gray-100 hover:border-gray-300'
+                                  }`}
+                                onClick={() => handleTimeSelection(person, time)}
+                              >
+                                {time}
+                              </button>
+                            ))}
                           </div>
                         </div>
                       </div>
                     );
                   })}
+                  
+                  {availableStaffForDate.length === 0 && (
+                    <div className="text-center p-8 bg-gray-50 rounded-md border border-gray-200">
+                      <div className="mb-3 text-gray-400">
+                        <Calendar className="w-12 h-12 mx-auto" />
+                      </div>
+                      <p className="text-gray-700 font-medium">No staff available on this date</p>
+                      <p className="text-gray-500 text-sm mt-1">Please select another date or service</p>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Summary at bottom */}
@@ -1018,7 +1032,7 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
                 
                 <div className="rounded-md bg-gray-50 border border-gray-200 p-4 mb-6">
                   <div className="flex items-start">
-                    <CalendarIcon className="h-5 w-5 text-gray-600 mr-3 mt-0.5" />
+                    <Calendar className="h-5 w-5 text-gray-600 mr-3 mt-0.5" />
                     <div>
                       <h3 className="font-medium text-gray-900">Appointment Details</h3>
                       <p className="text-gray-600 text-sm mt-1">
@@ -1075,7 +1089,7 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
               {currentStep > 1 ? (
                 <button 
                   onClick={prevStep}
-                  className="px-5 py-2.5 flex items-center text-gray-700 hover:text-gray-900 transition-colors"
+                  className="px-5 py-2.5 flex items-center text-gray-700 hover:text-gray-900 transition-colors font-medium"
                 >
                   <ChevronLeft className="h-5 w-5 mr-1" />
                   Back
@@ -1091,10 +1105,15 @@ const EnhancedBookingForm: React.FC<EnhancedBookingFormProps> = ({
                   (currentStep === 2 && (!selectedStaff || !selectedTime)) ||
                   (currentStep === 3 && isSubmitting)
                 }
-                className="px-6 py-2.5 bg-gray-800 text-white font-medium rounded-md hover:bg-gray-700 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2.5 bg-gray-800 text-white font-medium rounded-md hover:bg-gray-700 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
               >
                 {currentStep === 3 ? (
-                  isSubmitting ? 'Saving...' : 'Confirm Booking'
+                  isSubmitting ? (
+                    <>
+                      <span className="mr-2">Saving...</span>
+                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                    </>
+                  ) : 'Confirm Booking'
                 ) : (
                   <>
                     Continue
