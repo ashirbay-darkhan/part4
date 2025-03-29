@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { 
   BarChart, 
   CalendarDays,
@@ -56,6 +56,57 @@ type DateRange = 'all' | 'today' | 'week' | 'month' | 'custom';
 type SortField = 'date' | 'client' | 'service' | 'price' | 'status';
 type SortOrder = 'asc' | 'desc';
 
+// Import necessary props types to fix linter errors
+interface StatisticsData {
+  totalAppointments: number;
+  totalRevenue: number;
+  averageValue: number;
+  completionRate: number;
+  statusCounts: Record<AppointmentStatus, number>;
+  topServices: Array<{ id: string; name: string; count: number; revenue: number }>;
+}
+
+interface SummaryCardsProps {
+  statistics: StatisticsData;
+  isLoading: boolean;
+  dateRangeLabel: string;
+}
+
+// Custom hook for using localStorage
+function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
+  // State to store our value
+  const [storedValue, setStoredValue] = useState<T>(initialValue);
+
+  // Initialize on first render
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const item = window.localStorage.getItem(key);
+        setStoredValue(item ? JSON.parse(item) : initialValue);
+      }
+    } catch (error) {
+      console.error('Error reading from localStorage:', error);
+      setStoredValue(initialValue);
+    }
+  }, [key, initialValue]);
+
+  // Return a wrapped version of useState's setter function that persists the new value to localStorage
+  const setValue = (value: T) => {
+    try {
+      // Save state
+      setStoredValue(value);
+      // Save to localStorage
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(key, JSON.stringify(value));
+      }
+    } catch (error) {
+      console.error('Error writing to localStorage:', error);
+    }
+  };
+
+  return [storedValue, setValue];
+}
+
 export default function AnalyticsPage() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,6 +118,14 @@ export default function AnalyticsPage() {
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [statusFilter, setStatusFilter] = useState<AppointmentStatus | 'all'>('all');
+  
+  // Use our custom localStorage hook for the active tab
+  const [activeTab, setActiveTab] = useLocalStorage<string>('analytics_active_tab', 'overview');
+  
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+  };
   
   // Fetch data
   const { 
@@ -131,6 +190,25 @@ export default function AnalyticsPage() {
       
       default:
         return { start: new Date(0), end: new Date() };
+    }
+  }, [selectedDateRange, customDateStart, customDateEnd]);
+  
+  // Get description for the current date range
+  const getDateRangeLabel = useCallback(() => {
+    switch (selectedDateRange) {
+      case 'today':
+        return 'today';
+      case 'week':
+        return 'this week';
+      case 'month':
+        return 'from last month';
+      case 'custom':
+        if (customDateStart && customDateEnd) {
+          return `from ${format(new Date(customDateStart), 'MMM dd')} to ${format(new Date(customDateEnd), 'MMM dd')}`;
+        }
+        return 'in selected period';
+      default:
+        return 'all time';
     }
   }, [selectedDateRange, customDateStart, customDateEnd]);
 
@@ -390,10 +468,10 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="space-y-8 pt-4">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 pt-2">
+      <div className="flex justify-between items-center mb-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight mb-1">Analytics</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
           <p className="text-muted-foreground">Track, analyze, and export your business performance data.</p>
         </div>
         <div className="flex items-center gap-2">
@@ -408,22 +486,67 @@ export default function AnalyticsPage() {
         </div>
       </div>
       
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="appointments">Appointments</TabsTrigger>
-        </TabsList>
+      <Tabs 
+        defaultValue={activeTab} 
+        className="space-y-5"
+        onValueChange={handleTabChange}
+      >
+        <div className="flex items-center justify-between">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="appointments">Appointments</TabsTrigger>
+          </TabsList>
+          
+          <div className="flex items-center gap-2">
+            <Select 
+              value={selectedDateRange} 
+              onValueChange={(value) => setSelectedDateRange(value as DateRange)}
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Date range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All time</SelectItem>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="week">This week</SelectItem>
+                <SelectItem value="month">This month</SelectItem>
+                <SelectItem value="custom">Custom range</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {selectedDateRange === 'custom' && (
+              <div className="flex gap-1">
+                <Input
+                  type="date"
+                  className="w-auto h-9 text-sm"
+                  value={customDateStart}
+                  onChange={(e) => setCustomDateStart(e.target.value)}
+                />
+                <Input
+                  type="date"
+                  className="w-auto h-9 text-sm"
+                  value={customDateEnd}
+                  onChange={(e) => setCustomDateEnd(e.target.value)}
+                />
+              </div>
+            )}
+          </div>
+        </div>
         
         <TabsContent value="overview" className="space-y-6">
           {/* Summary Cards */}
-          <SummaryCards statistics={statistics} isLoading={isLoading} />
+          <SummaryCards 
+            statistics={statistics} 
+            isLoading={isLoading} 
+            dateRangeLabel={getDateRangeLabel()}
+          />
           
           {/* Charts Section */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2 shadow-md hover:shadow-lg transition-all duration-300">
               <CardHeader className="pb-4">
                 <CardTitle>Revenue Over Time</CardTitle>
-                <CardDescription>Financial performance for the selected period</CardDescription>
+                <CardDescription>Financial performance for {selectedDateRange === 'all' ? 'all time' : `the selected ${selectedDateRange === 'custom' ? 'period' : selectedDateRange}`}</CardDescription>
               </CardHeader>
               <CardContent className="h-80">
                 <RevenueChart data={chartData} isLoading={isLoading} />
@@ -433,7 +556,7 @@ export default function AnalyticsPage() {
             <Card className="shadow-md hover:shadow-lg transition-all duration-300">
               <CardHeader className="pb-4">
                 <CardTitle>Appointments by Status</CardTitle>
-                <CardDescription>Distribution across different statuses</CardDescription>
+                <CardDescription>Distribution across different statuses for {selectedDateRange === 'all' ? 'all time' : `the selected ${selectedDateRange === 'custom' ? 'period' : selectedDateRange}`}</CardDescription>
               </CardHeader>
               <CardContent className="h-80">
                 <AppointmentsByStatusChart data={statusChartData} isLoading={isLoading} />
@@ -445,7 +568,7 @@ export default function AnalyticsPage() {
           <Card className="shadow-md hover:shadow-lg transition-all duration-300">
             <CardHeader className="pb-4 border-b">
               <CardTitle>Top Services</CardTitle>
-              <CardDescription>Your most booked services in the selected period</CardDescription>
+              <CardDescription>Your most booked services in {selectedDateRange === 'all' ? 'all time' : `the selected ${selectedDateRange === 'custom' ? 'period' : selectedDateRange}`}</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
@@ -501,39 +624,6 @@ export default function AnalyticsPage() {
           {/* Filters */}
           <div className="flex flex-col sm:flex-row justify-between gap-4">
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <Select 
-                value={selectedDateRange} 
-                onValueChange={(value) => setSelectedDateRange(value as DateRange)}
-              >
-                <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="Date range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All time</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="week">This week</SelectItem>
-                  <SelectItem value="month">This month</SelectItem>
-                  <SelectItem value="custom">Custom range</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              {selectedDateRange === 'custom' && (
-                <div className="flex gap-2">
-                  <Input
-                    type="date"
-                    className="w-full sm:w-auto"
-                    value={customDateStart}
-                    onChange={(e) => setCustomDateStart(e.target.value)}
-                  />
-                  <Input
-                    type="date"
-                    className="w-full sm:w-auto"
-                    value={customDateEnd}
-                    onChange={(e) => setCustomDateEnd(e.target.value)}
-                  />
-                </div>
-              )}
-              
               <Select 
                 value={statusFilter} 
                 onValueChange={(value) => setStatusFilter(value as AppointmentStatus | 'all')}

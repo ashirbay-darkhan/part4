@@ -117,93 +117,92 @@ export function BookingDetailsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Appointment Details</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="sm:max-w-[600px] p-5">
+        <DialogHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-lg">Appointment Details</DialogTitle>
+            <Badge className={`${getStatusColor(appointment.status)} py-1 px-3 border text-sm`}>
+              {appointment.status}
+            </Badge>
+          </div>
+          <DialogDescription className="text-xs mt-1">
             View and manage appointment information
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-6 py-4">
-          {/* Status Badge */}
-          <div className="flex items-center justify-between">
-            <Label htmlFor="status" className="text-muted-foreground">Status</Label>
-            <Badge className={`${getStatusColor(appointment.status)} py-1 px-3 border`}>
-              {appointment.status}
-            </Badge>
+        <div className="py-3">
+          {/* Basic Details Section */}
+          <div className="grid grid-cols-2 gap-3 border rounded-md p-3 bg-muted/10">
+            <div className="flex items-center gap-2">
+              <Tag className="h-4 w-4 text-primary" />
+              <div>
+                <span className="text-xs text-muted-foreground">Service</span>
+                <p className="text-sm font-medium">{service?.name || 'Unknown Service'}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 text-primary" />
+              <div>
+                <span className="text-xs text-muted-foreground">Client</span>
+                <p className="text-sm font-medium">{client?.name || 'Unknown Client'}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-primary" />
+              <div>
+                <span className="text-xs text-muted-foreground">Date</span>
+                <p className="text-sm font-medium">{format(appointmentDate, 'EEE, MMM d, yyyy')}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-primary" />
+              <div>
+                <span className="text-xs text-muted-foreground">Time</span>
+                <p className="text-sm font-medium">{appointment.startTime} - {appointment.endTime}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-primary" />
+              <div>
+                <span className="text-xs text-muted-foreground">Duration</span>
+                <p className="text-sm font-medium">{appointment.duration} minutes</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-primary" />
+              <div>
+                <span className="text-xs text-muted-foreground">Price</span>
+                <p className="text-sm font-medium">₸ {appointment.price.toLocaleString()}</p>
+              </div>
+            </div>
           </div>
           
-          {/* Service & Basic Details */}
-          <div className="grid grid-cols-1 gap-4">
-            <div className="flex items-center gap-3">
-              <Tag className="h-5 w-5 text-gray-500" />
-              <div>
-                <Label className="text-muted-foreground text-xs">Service</Label>
-                <p className="font-medium">{service?.name || 'Unknown Service'}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <User className="h-5 w-5 text-gray-500" />
-              <div>
-                <Label className="text-muted-foreground text-xs">Client</Label>
-                <p className="font-medium">{client?.name || 'Unknown Client'}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <Calendar className="h-5 w-5 text-gray-500" />
-              <div>
-                <Label className="text-muted-foreground text-xs">Date</Label>
-                <p className="font-medium">{format(appointmentDate, 'EEEE, MMMM d, yyyy')}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <Clock className="h-5 w-5 text-gray-500" />
-              <div>
-                <Label className="text-muted-foreground text-xs">Time</Label>
-                <p className="font-medium">{appointment.startTime} - {appointment.endTime}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <FileText className="h-5 w-5 text-gray-500" />
-              <div>
-                <Label className="text-muted-foreground text-xs">Duration</Label>
-                <p className="font-medium">{appointment.duration} minutes</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <DollarSign className="h-5 w-5 text-gray-500" />
-              <div>
-                <Label className="text-muted-foreground text-xs">Price</Label>
-                <p className="font-medium">₸ {appointment.price.toLocaleString()}</p>
-              </div>
-            </div>
-            
-            {appointment.comment && (
-              <div className="flex items-start gap-3">
-                <MessageSquare className="h-5 w-5 text-gray-500 mt-0.5" />
+          {appointment.comment && (
+            <div className="mt-3 border rounded-md p-3 bg-muted/10">
+              <div className="flex items-start gap-2">
+                <MessageSquare className="h-4 w-4 text-primary mt-0.5" />
                 <div>
-                  <Label className="text-muted-foreground text-xs">Comment</Label>
+                  <span className="text-xs text-muted-foreground">Comment</span>
                   <p className="text-sm">{appointment.comment}</p>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
           
           {/* Update Status */}
-          <div className="space-y-2 border-t pt-4">
-            <Label htmlFor="status">Update Status</Label>
+          <div className="mt-3 border rounded-md p-3 bg-muted/10">
+            <Label htmlFor="status" className="text-sm font-medium mb-1 block">Update Status</Label>
             <div className="flex gap-2">
               <Select 
                 value={newStatus} 
                 onValueChange={(value) => setNewStatus(value as AppointmentStatus)}
               >
-                <SelectTrigger id="status" className="w-full">
+                <SelectTrigger id="status" className="w-full h-9 text-sm">
                   <SelectValue placeholder="Select new status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -215,46 +214,45 @@ export function BookingDetailsModal({
                   <SelectItem value="No-Show">No-Show</SelectItem>
                 </SelectContent>
               </Select>
-              <Button onClick={handleStatusUpdate} disabled={isUpdating || !newStatus}>
+              <Button onClick={handleStatusUpdate} disabled={isUpdating || !newStatus} className="px-3 h-9 text-sm">
                 {isUpdating ? 'Updating...' : 'Update'}
               </Button>
             </div>
           </div>
           
           {/* Notes Section */}
-          <div className="space-y-2">
-            <Label htmlFor="notes">Add Notes</Label>
+          <div className="mt-3 border rounded-md p-3 bg-muted/10">
+            <Label htmlFor="notes" className="text-sm font-medium mb-1 block">Notes</Label>
             <Textarea
               id="notes"
               placeholder="Add notes about this appointment..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="h-20"
+              className="h-20 text-sm resize-none"
             />
+            <Button 
+              variant="default" 
+              className="w-full mt-2 h-8 text-sm"
+              onClick={() => {
+                toast({
+                  title: "Notes saved",
+                  description: "Appointment notes have been saved."
+                });
+              }}
+            >
+              <Check className="h-3.5 w-3.5 mr-1.5" />
+              Save Notes
+            </Button>
           </div>
         </div>
         
-        <DialogFooter className="flex gap-2 sm:justify-between sm:flex-row">
+        <DialogFooter className="pt-2">
           <Button 
             variant="outline" 
             onClick={onClose}
-            className="w-full sm:w-auto"
+            className="w-full h-9 text-sm"
           >
-            <X className="h-4 w-4 mr-2" />
             Close
-          </Button>
-          <Button 
-            variant="default" 
-            className="w-full sm:w-auto bg-primary"
-            onClick={() => {
-              toast({
-                title: "Notes saved",
-                description: "Appointment notes have been saved."
-              });
-            }}
-          >
-            <Check className="h-4 w-4 mr-2" />
-            Save Notes
           </Button>
         </DialogFooter>
       </DialogContent>

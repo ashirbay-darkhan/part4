@@ -28,9 +28,10 @@ interface StatisticsData {
 interface SummaryCardsProps {
   statistics: StatisticsData;
   isLoading: boolean;
+  dateRangeLabel: string;
 }
 
-export function SummaryCards({ statistics, isLoading }: SummaryCardsProps) {
+export function SummaryCards({ statistics, isLoading, dateRangeLabel }: SummaryCardsProps) {
   // Helper function to render a card with loading state
   const renderCard = (
     title: string,
@@ -73,7 +74,7 @@ export function SummaryCards({ statistics, isLoading }: SummaryCardsProps) {
         statistics.totalAppointments,
         <Calendar className="h-5 w-5" />,
         <ArrowUpRight className="h-3 w-3 text-green-500" />,
-        "2.5% from last month"
+        `2.5% ${dateRangeLabel}`
       )}
       
       {renderCard(
@@ -81,7 +82,7 @@ export function SummaryCards({ statistics, isLoading }: SummaryCardsProps) {
         statistics.totalRevenue,
         <DollarSign className="h-5 w-5" />,
         <ArrowUpRight className="h-3 w-3 text-green-500" />,
-        "18.1% from last month",
+        `18.1% ${dateRangeLabel}`,
         true
       )}
       
@@ -90,7 +91,7 @@ export function SummaryCards({ statistics, isLoading }: SummaryCardsProps) {
         Math.round(statistics.averageValue),
         <Users className="h-5 w-5" />,
         <ArrowUpRight className="h-3 w-3 text-green-500" />,
-        "7.2% from last month",
+        `7.2% ${dateRangeLabel}`,
         true
       )}
       
