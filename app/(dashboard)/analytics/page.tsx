@@ -44,8 +44,8 @@ import {
 
 import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { useBusinessData } from '@/lib/hooks/useBusinessData';
-import { getBusinessAppointments, getBusinessClients, getBusinessServices } from '@/lib/api';
-import { Appointment, AppointmentStatus, Client, Service } from '@/types';
+import { getBusinessAppointments, getBusinessClients, getBusinessServices, getBusinessStaff } from '@/lib/api';
+import { Appointment, AppointmentStatus, Client, Service, User } from '@/types';
 import { BookingDetailsModal } from '@/components/analytics/booking-details-modal';
 import { RevenueChart } from '@/components/analytics/revenue-chart';
 import { SummaryCards } from '@/components/analytics/summary-cards';
@@ -53,7 +53,7 @@ import { AppointmentsByStatusChart } from '@/components/analytics/appointments-b
 
 // Define main filter types
 type DateRange = 'all' | 'today' | 'week' | 'month' | 'custom';
-type SortField = 'date' | 'client' | 'service' | 'price' | 'status';
+type SortField = 'date' | 'client' | 'service' | 'staff' | 'price' | 'status';
 type SortOrder = 'asc' | 'desc';
 
 // Import necessary props types to fix linter errors
@@ -154,7 +154,15 @@ export default function AnalyticsPage() {
     cacheDuration: 2 * 60 * 1000
   });
   
-  const isLoading = isLoadingAppointments || isLoadingClients || isLoadingServices;
+  const { 
+    data: staffMembers = [], 
+    isLoading: isLoadingStaff
+  } = useBusinessData<User>(getBusinessStaff, {
+    cacheKey: 'analyticsStaff',
+    cacheDuration: 2 * 60 * 1000
+  });
+  
+  const isLoading = isLoadingAppointments || isLoadingClients || isLoadingServices || isLoadingStaff;
 
   // Date range filter logic
   const getDateRange = useCallback(() => {
@@ -273,6 +281,12 @@ export default function AnalyticsPage() {
           comparison = serviceA.localeCompare(serviceB);
           break;
           
+        case 'staff':
+          const staffA = staffMembers.find(s => s.id === a.employeeId)?.name || '';
+          const staffB = staffMembers.find(s => s.id === b.employeeId)?.name || '';
+          comparison = staffA.localeCompare(staffB);
+          break;
+          
         case 'price':
           comparison = a.price - b.price;
           break;
@@ -284,7 +298,7 @@ export default function AnalyticsPage() {
       
       return sortOrder === 'asc' ? comparison : -comparison;
     });
-  }, [filteredAppointments, sortField, sortOrder, clients, services]);
+  }, [filteredAppointments, sortField, sortOrder, clients, services, staffMembers]);
 
   // Calculate statistics
   const statistics = useMemo(() => {
@@ -697,6 +711,14 @@ export default function AnalyticsPage() {
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => {
+                        setSortField('staff');
+                        setSortOrder(sortField === 'staff' && sortOrder === 'desc' ? 'asc' : 'desc');
+                      }}
+                    >
+                      Staff {sortField === 'staff' && (sortOrder === 'desc' ? '↓' : '↑')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => {
                         setSortField('price');
                         setSortOrder(sortField === 'price' && sortOrder === 'desc' ? 'asc' : 'desc');
                       }}
@@ -722,6 +744,7 @@ export default function AnalyticsPage() {
                     <TableHead>Date & Time</TableHead>
                     <TableHead>Client</TableHead>
                     <TableHead>Service</TableHead>
+                    <TableHead>Staff</TableHead>
                     <TableHead>Duration</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Status</TableHead>
@@ -741,6 +764,9 @@ export default function AnalyticsPage() {
                           <div className="h-4 w-32 bg-gray-100 animate-pulse rounded"></div>
                         </TableCell>
                         <TableCell>
+                          <div className="h-4 w-28 bg-gray-100 animate-pulse rounded"></div>
+                        </TableCell>
+                        <TableCell>
                           <div className="h-4 w-16 bg-gray-100 animate-pulse rounded"></div>
                         </TableCell>
                         <TableCell>
@@ -755,6 +781,7 @@ export default function AnalyticsPage() {
                     sortedAppointments.map((appointment) => {
                       const client = clients.find(c => c.id === appointment.clientId);
                       const service = services.find(s => s.id === appointment.serviceId);
+                      const staff = staffMembers.find(s => s.id === appointment.employeeId);
                       const appointmentDate = parseISO(appointment.date);
                       
                       // Status colors
@@ -781,6 +808,7 @@ export default function AnalyticsPage() {
                           </TableCell>
                           <TableCell>{client?.name || 'Unknown Client'}</TableCell>
                           <TableCell>{service?.name || 'Unknown Service'}</TableCell>
+                          <TableCell>{staff?.name || 'Unknown Staff'}</TableCell>
                           <TableCell>{appointment.duration} min</TableCell>
                           <TableCell>₸ {appointment.price.toLocaleString()}</TableCell>
                           <TableCell>
@@ -793,7 +821,7 @@ export default function AnalyticsPage() {
                     })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                         <div className="flex flex-col items-center justify-center gap-2">
                           <CalendarDays className="h-8 w-8 text-gray-300" />
                           <p>No appointments found for the selected criteria</p>

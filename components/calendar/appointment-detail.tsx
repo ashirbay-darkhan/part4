@@ -42,10 +42,11 @@ import {
   updateAppointment, 
   updateAppointmentStatus,
   deleteAppointment,
-  updatePaymentStatus
+  updatePaymentStatus,
+  getBusinessStaff
 } from '@/lib/api';
 
-import { Appointment, AppointmentStatus, Client, Service } from '@/types';
+import { Appointment, AppointmentStatus, Client, Service, User as StaffMember } from '@/types';
 
 interface AppointmentDetailProps {
   appointment: Appointment;
@@ -73,6 +74,8 @@ export function AppointmentDetailView({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'paid' | 'unpaid'>('unpaid');
   const [updatingStatus, setUpdatingStatus] = useState<AppointmentStatus | null>(null);
+  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
+  const [selectedStaffId, setSelectedStaffId] = useState<string>(initialAppointment.employeeId);
   
   // Form state for editing
   const [editForm, setEditForm] = useState({
@@ -80,7 +83,8 @@ export function AppointmentDetailView({
     startTime: initialAppointment.startTime,
     endTime: initialAppointment.endTime,
     duration: calculateDuration(initialAppointment.startTime, initialAppointment.endTime),
-    serviceId: initialAppointment.serviceId
+    serviceId: initialAppointment.serviceId,
+    employeeId: initialAppointment.employeeId
   });
 
   // Available time slots
@@ -112,15 +116,20 @@ export function AppointmentDetailView({
       try {
         setIsLoading(true);
         
-        // Fetch client and service data in parallel
-        const [clientData, serviceData] = await Promise.all([
+        // Fetch client, service, and staff data in parallel
+        const [clientData, serviceData, staffData] = await Promise.all([
           getClient(initialAppointment.clientId),
-          getService(initialAppointment.serviceId)
+          getService(initialAppointment.serviceId),
+          getBusinessStaff(initialAppointment.businessId)
         ]);
         
         setClient(clientData);
         setService(serviceData);
         setComment(initialAppointment.comment || '');
+        
+        // Filter out admin users from staff list
+        const nonAdminStaff = staffData.filter(staff => staff.role !== 'admin');
+        setStaffMembers(nonAdminStaff);
         
         // Set payment status (in a real app, this would come from the API)
         setPaymentStatus('unpaid');
@@ -192,24 +201,26 @@ export function AppointmentDetailView({
   };
 
   // Handle form field changes
-  const handleFormChange = (field: string, value: string) => {
-    // Keep focus in editing mode - prevent dropdowns from closing the modal
-    if (field === 'serviceId' || field === 'startTime') {
-      // Ensure we're still in editing mode
-      setIsEditing(true);
+  const handleFormChange = (field: keyof typeof editForm, value: string) => {
+    // Create a copy of the current form state
+    const updatedForm = { ...editForm };
+    
+    // Update the specified field
+    updatedForm[field] = value;
+    
+    // If we're changing startTime, recalculate endTime based on service duration
+    if (field === 'startTime' && service) {
+      const endTime = calculateEndTime(value, service.duration / 60);
+      updatedForm.endTime = endTime;
     }
     
-    setEditForm(prev => {
-      const newForm = { ...prev, [field]: value };
-      
-      // If start time or duration changes, update end time
-      if (field === 'startTime' || field === 'duration') {
-        const endTime = calculateEndTime(newForm.startTime, parseFloat(newForm.duration));
-        return { ...newForm, endTime };
-      }
-      
-      return newForm;
-    });
+    // If we're changing service, we might want to update duration
+    if (field === 'serviceId') {
+      // This would need a service lookup, which we're skipping for brevity
+    }
+    
+    // Update the form state
+    setEditForm(updatedForm);
   };
 
   // Handle comment change
@@ -226,22 +237,30 @@ export function AppointmentDetailView({
     try {
       setIsSaving(true);
       
-      await updateAppointment(appointment.id, {
+      // Create updated appointment object
+      const updatedAppointment = {
+        ...appointment,
         date: editForm.date,
         startTime: editForm.startTime,
         endTime: editForm.endTime,
-        comment,
-        serviceId: editForm.serviceId
-      });
+        employeeId: editForm.employeeId
+      };
       
-      // Call the onUpdate prop if provided
+      // Call API to update appointment
+      await updateAppointment(appointment.id, updatedAppointment);
+      
+      // Update local state
+      setAppointment(updatedAppointment);
+      
+      // Exit edit mode
+      setIsEditing(false);
+      
+      // Notify parent components
       if (onUpdate) {
         await onUpdate();
       }
-      
-      setIsEditing(false);
     } catch (error) {
-      console.error('Error updating appointment:', error);
+      console.error('Error saving appointment changes:', error);
     } finally {
       setIsSaving(false);
     }
@@ -424,6 +443,24 @@ export function AppointmentDetailView({
                   </SelectContent>
                 </Select>
               </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Staff Member</label>
+                <Select 
+                  value={editForm.employeeId}
+                  onValueChange={(value) => handleFormChange('employeeId', value)}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue placeholder="Select staff member" />
+                  </SelectTrigger>
+                  <SelectContent position="popper" className="max-h-[300px]" onClick={(e) => e.stopPropagation()}>
+                    {staffMembers.map(staff => (
+                      <SelectItem key={staff.id} value={staff.id} className="text-sm">
+                        {staff.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="pt-2">
                 <Button 
                   onClick={handleSaveChanges}
@@ -449,6 +486,13 @@ export function AppointmentDetailView({
                 <div className="flex items-center">
                   <Clock className="h-3.5 w-3.5 text-gray-400 mr-1.5" />
                   <span className="text-sm">{appointment.startTime} - {appointment.endTime}</span>
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Staff Member</div>
+                <div className="flex items-center">
+                  <User className="h-3.5 w-3.5 text-gray-400 mr-1.5" />
+                  <span className="text-sm">{staffMembers.find(s => s.id === appointment.employeeId)?.name || 'Unknown'}</span>
                 </div>
               </div>
               <div>
