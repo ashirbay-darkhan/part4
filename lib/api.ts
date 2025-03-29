@@ -6,6 +6,56 @@ const API_URL = 'http://localhost:3001';
 let isServerAvailable = true;
 let serverCheckTimeout: NodeJS.Timeout | null = null;
 
+// In-memory cache for API requests with enhanced configuration
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+  businessId?: string;
+}
+
+const apiCache: Record<string, CacheEntry<any>> = {};
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes for standard data
+const CACHE_DURATION_SHORT = 60 * 1000; // 1 minute for frequently changing data like appointments
+const CACHE_DURATION_LONG = 30 * 60 * 1000; // 30 minutes for static data like services
+
+// Track pending requests to avoid duplicates
+const pendingRequests = new Map<string, Promise<any>>();
+
+// Local storage cache functions
+const CACHE_VERSION = '1';
+
+export function saveToLocalCache<T>(key: string, data: T, ttl: number = CACHE_DURATION): void {
+  try {
+    const item = {
+      version: CACHE_VERSION,
+      data,
+      expiry: Date.now() + ttl
+    };
+    localStorage.setItem(`cache_${key}`, JSON.stringify(item));
+  } catch (error) {
+    console.warn('Failed to cache data:', error);
+  }
+}
+
+export function getFromLocalCache<T>(key: string): T | null {
+  try {
+    const rawItem = localStorage.getItem(`cache_${key}`);
+    if (!rawItem) return null;
+    
+    const item = JSON.parse(rawItem);
+    
+    // Check version and expiry
+    if (item.version !== CACHE_VERSION || item.expiry < Date.now()) {
+      localStorage.removeItem(`cache_${key}`);
+      return null;
+    }
+    
+    return item.data;
+  } catch {
+    return null;
+  }
+}
+
 // Comprehensive fallback data for when API is unavailable
 const FALLBACK_DATA = {
   users: [
@@ -110,6 +160,29 @@ const FALLBACK_DATA = {
       totalVisits: 5,
       lastVisit: '2025-02-20T14:30:00',
       notes: 'Prefers natural dyes',
+      businessId: '1'
+    }
+  ],
+  serviceCategories: [
+    {
+      id: '1',
+      name: 'Haircut',
+      description: 'Hair cutting services',
+      color: '#4f46e5',
+      businessId: '1'
+    },
+    {
+      id: '2',
+      name: 'Styling',
+      description: 'Hair styling services',
+      color: '#8b5cf6',
+      businessId: '1'
+    },
+    {
+      id: '3',
+      name: 'Color',
+      description: 'Hair coloring services',
+      color: '#ec4899',
       businessId: '1'
     }
   ]
@@ -219,146 +292,45 @@ function deleteFallbackItem(entityName: keyof typeof FALLBACK_DATA, id: string):
 // Check if the server is available
 async function checkServerAvailability(): Promise<boolean> {
   try {
-    const response = await fetch(`${API_URL}/users?_limit=1`, {
+    const response = await fetch(`${API_URL}/health-check`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      signal: AbortSignal.timeout(1000) // 1 second timeout
+      headers: { 'Accept': 'application/json' },
+      // Shorter timeout to quickly determine if server is down
+      signal: AbortSignal.timeout(2000)
     });
     
     isServerAvailable = response.ok;
     return isServerAvailable;
   } catch (error) {
-    console.log('Server appears to be down, using fallback data');
+    console.warn('Server not available:', error);
     isServerAvailable = false;
     
-    // Schedule a re-check in 30 seconds
+    // Schedule a retry after some time
     if (!serverCheckTimeout) {
       serverCheckTimeout = setTimeout(() => {
-        checkServerAvailability();
         serverCheckTimeout = null;
-      }, 30000);
+        checkServerAvailability();
+      }, 30000); // Retry after 30 seconds
     }
     
     return false;
   }
 }
 
-// Function to check server availability and fetch data, with local fallback
-export async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  // Make sure endpoint starts with a slash
-  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  
-  // Parse the endpoint to get the entity type (e.g., /users -> users)
-  let entityName = normalizedEndpoint.split('/')[1]?.split('?')[0];
-  
-  // Handle endpoints like /services/123 by extracting the base entity
-  if (entityName && /^\d+$/.test(entityName)) {
-    entityName = normalizedEndpoint.split('/')[0];
-  }
-  
-  // For businesses specifically, extract the right entity name
-  if (normalizedEndpoint.startsWith('/businesses/')) {
-    entityName = 'businesses';
-  }
-  
-  // Check if server is available or use cached result
-  if (!isServerAvailable) {
-    if (serverCheckTimeout === null) {
-      // Schedule a check to see if server is back online
-      serverCheckTimeout = setTimeout(async () => {
-        isServerAvailable = await checkServerAvailability();
-        serverCheckTimeout = null;
-      }, 30000); // Check every 30 seconds
-    }
-    
-    // Use fallback data
-    return getFallbackForEndpoint<T>(normalizedEndpoint, entityName as keyof typeof FALLBACK_DATA);
-  }
-  
-  // Get auth token from localStorage
-  let headers = new Headers(options.headers);
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('token');
-    if (token && !headers.has('Authorization')) {
-      headers.append('Authorization', `Bearer ${token}`);
-    }
-  }
-  
-  // Prepare the fetch options with headers
-  const fetchOptions = {
-    ...options,
-    headers
-  };
-  
-  try {
-    // Use the normalized endpoint with API URL
-    const response = await fetch(`${API_URL}${normalizedEndpoint}`, fetchOptions);
-    
-    // Handle 404 errors for specific entities more gracefully
-    if (response.status === 404) {
-      // Special handling for business lookups - return fallback business data
-      if (normalizedEndpoint.startsWith('/businesses/')) {
-        const businessId = normalizedEndpoint.split('/')[2]?.split('?')[0];
-        if (businessId) {
-          // Try to find the business in our fallback data
-          const fallbackBusiness = getFallbackItem('businesses', businessId);
-          if (fallbackBusiness) {
-            return fallbackBusiness as unknown as T;
-          }
-          
-          // If not found in fallback data, return the first business as default
-          const businesses = FALLBACK_DATA.businesses;
-          if (businesses && businesses.length > 0) {
-            return businesses[0] as unknown as T;
-          }
-        }
-      }
-      
-      // For other entities on 404, return an empty result without failing
-      if (entityName && ['services', 'clients', 'appointments'].includes(entityName)) {
-        return (Array.isArray(FALLBACK_DATA[entityName as keyof typeof FALLBACK_DATA]) ? [] : {}) as unknown as T;
-      }
-    }
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return data as T;
-  } catch (error) {
-    console.error(`Error fetching from ${normalizedEndpoint}:`, error);
-    
-    // Mark server as unavailable if we can't connect
-    isServerAvailable = false;
-    
-    if (serverCheckTimeout === null) {
-      // Schedule a check to see if server is back online
-      serverCheckTimeout = setTimeout(async () => {
-        isServerAvailable = await checkServerAvailability();
-        serverCheckTimeout = null;
-      }, 30000); // Check every 30 seconds
-    }
-    
-    // Return fallback data
-    return getFallbackForEndpoint<T>(normalizedEndpoint, entityName as keyof typeof FALLBACK_DATA);
-  }
-}
+// Initialize server check
+checkServerAvailability();
 
 // Function to handle fallback data for endpoints
-function getFallbackForEndpoint<T>(endpoint: string, entityName: keyof typeof FALLBACK_DATA): T {
-  // Ensure we have a clean endpoint to parse (remove leading slash if present)
-  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
-  
+function getFallbackForEndpoint<T>(endpoint: string, businessId?: string): T {
   // Parse endpoint components
-  const parts = cleanEndpoint.split('/').filter(Boolean);
+  const parts = endpoint.split('/').filter(Boolean);
   const baseName = parts[0];
   const id = parts.length > 1 ? parts[1]?.split('?')[0] : null;
   
   // Parse query parameters if any
   const queryParams: Record<string, any> = {};
-  if (cleanEndpoint.includes('?')) {
-    const queryString = cleanEndpoint.split('?')[1];
+  if (endpoint.includes('?')) {
+    const queryString = endpoint.split('?')[1];
     queryString.split('&').forEach(param => {
       const [key, value] = param.split('=');
       if (key && value) {
@@ -367,10 +339,46 @@ function getFallbackForEndpoint<T>(endpoint: string, entityName: keyof typeof FA
     });
   }
   
-  // Handle different HTTP methods
+  // Add businessId to query params if provided and not already present
+  if (businessId && !queryParams.businessId) {
+    queryParams.businessId = businessId;
+  }
+  
+  // Handle different endpoints
+  if (endpoint.startsWith('business-data/') && id) {
+    // For business-data endpoint, return a comprehensive dataset
+    const business = getFallbackItem<Business>('businesses', id);
+    const users = getFallbackData<BusinessUser>('users', { businessId: id });
+    const services = getFallbackData<Service>('services', { businessId: id });
+    const appointments = getFallbackData<Appointment>('appointments', { businessId: id });
+    const clients = getFallbackData<Client>('clients', { businessId: id });
+    const serviceCategories = getFallbackData<ServiceCategory>('serviceCategories', { businessId: id });
+    
+    return {
+      business,
+      users,
+      services,
+      appointments,
+      clients,
+      serviceCategories
+    } as unknown as T;
+  }
+  
+  // Handle entity name mapping
+  const entityNameMap: Record<string, keyof typeof FALLBACK_DATA> = {
+    'users': 'users',
+    'services': 'services',
+    'appointments': 'appointments',
+    'clients': 'clients',
+    'businesses': 'businesses',
+    'serviceCategories': 'serviceCategories'
+  };
+  
+  const entityName = entityNameMap[baseName];
+  
   if (!entityName || !FALLBACK_DATA[entityName]) {
-    console.error(`No fallback data for ${entityName || 'undefined entity'}`);
-    return [] as unknown as T;
+    console.error(`No fallback data for ${baseName || 'undefined entity'}`);
+    return (Array.isArray(FALLBACK_DATA[Object.keys(FALLBACK_DATA)[0] as keyof typeof FALLBACK_DATA]) ? [] : {}) as unknown as T;
   }
   
   // Return appropriate fallback data
@@ -381,6 +389,264 @@ function getFallbackForEndpoint<T>(endpoint: string, entityName: keyof typeof FA
     // For collection requests, with filtering
     return getFallbackData(entityName, queryParams) as unknown as T;
   }
+}
+
+// Enhanced fetchAPI function with deduplication, local storage, and optimized caching
+export async function fetchAPI<T>(
+  endpoint: string, 
+  options: RequestInit = {}, 
+  bypassCache: boolean = false,
+  businessId?: string,
+  cacheDuration: number = CACHE_DURATION
+): Promise<T> {
+  try {
+    // Build cache key based on endpoint and options
+    const cacheKey = `${endpoint}:${options.method || 'GET'}:${JSON.stringify(options.body || {})}`;
+    
+    // For GET requests, check localStorage first (fastest)
+    if (!bypassCache && !['POST', 'PUT', 'PATCH', 'DELETE'].includes(options.method || 'GET')) {
+      const localData = getFromLocalCache<T>(cacheKey);
+      if (localData) {
+        return localData;
+      }
+    }
+    
+    // Check for duplicate in-flight requests to avoid redundant API calls
+    if (pendingRequests.has(cacheKey)) {
+      return pendingRequests.get(cacheKey) as Promise<T>;
+    }
+    
+    // Check memory cache for non-mutating requests
+    if (!bypassCache && !['POST', 'PUT', 'PATCH', 'DELETE'].includes(options.method || 'GET')) {
+      const cachedData = apiCache[cacheKey];
+      if (cachedData && (Date.now() - cachedData.timestamp < cacheDuration)) {
+        // Return cached data if business ID matches or no business filter is needed
+        if (!businessId || cachedData.businessId === businessId) {
+          return cachedData.data;
+        }
+      }
+    }
+
+    // First, check if we know the server is down before making the request
+    if (!isServerAvailable) {
+      console.log(`Server is known to be down, using fallback data for ${endpoint}`);
+      // If we know the server is unavailable, directly use fallback data
+      return getFallbackForEndpoint<T>(endpoint, businessId);
+    }
+
+    // Create the promise for this request
+    const requestPromise = (async () => {
+      try {
+        // Set up common headers
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          ...((options.headers as Record<string, string>) || {})
+        };
+
+        // Add auth token if available
+        const token = getAuthToken();
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        // Prepare the full URL
+        let url = `${API_URL}/${endpoint}`;
+
+        // Add business ID to query params for business-specific endpoints if not already in URL
+        if (businessId && !url.includes('businessId=') && !url.includes('/business-data/')) {
+          const separator = url.includes('?') ? '&' : '?';
+          url += `${separator}businessId=${businessId}`;
+        }
+
+        // Make the request with improved timeout handling
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15-second timeout
+        
+        const response = await fetch(url, {
+          ...options,
+          headers,
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+
+        // Handle rate limiting
+        if (response.status === 429) {
+          const retryAfter = response.headers.get('Retry-After') || '5';
+          const retryMs = parseInt(retryAfter) * 1000;
+          console.warn(`Rate limited. Retrying after ${retryMs}ms`);
+          await new Promise(resolve => setTimeout(resolve, retryMs));
+          return fetchAPI<T>(endpoint, options, bypassCache, businessId); // Retry
+        }
+
+        // For 404 on GET requests, return empty array or object
+        if (response.status === 404 && (options.method === 'GET' || !options.method)) {
+          if (Array.isArray(endpoint.split('?')[0].split('/').pop())) {
+            return [] as unknown as T;
+          }
+          return {} as T;
+        }
+
+        // Handle server errors
+        if (response.status >= 500) {
+          console.error(`Server error: ${response.status} for ${url}`);
+          isServerAvailable = false;
+          
+          // Schedule a server check
+          if (!serverCheckTimeout) {
+            serverCheckTimeout = setTimeout(() => {
+              serverCheckTimeout = null;
+              checkServerAvailability();
+            }, 30000);
+          }
+          
+          return getFallbackForEndpoint<T>(endpoint, businessId);
+        }
+
+        // Handle other error responses
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          const error = new Error(`API error: ${response.status} ${response.statusText}`);
+          (error as any).status = response.status;
+          (error as any).data = errorData;
+          throw error;
+        }
+
+        // Parse response
+        const data = await response.json() as T;
+        
+        // Save to localStorage for fastest future retrieval (GET requests only)
+        if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(options.method || 'GET')) {
+          saveToLocalCache(cacheKey, data, cacheDuration);
+        }
+        
+        // Only cache GET requests in memory
+        if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(options.method || 'GET')) {
+          apiCache[cacheKey] = {
+            data,
+            timestamp: Date.now(),
+            businessId
+          };
+        } else {
+          // Invalidate cache after mutations
+          Object.keys(apiCache).forEach(key => {
+            if (key.startsWith(endpoint.split('/')[0])) {
+              delete apiCache[key];
+            }
+          });
+          
+          // Clear related localStorage cache after mutations
+          if (typeof window !== 'undefined') {
+            try {
+              Object.keys(localStorage).forEach(key => {
+                if (key.startsWith(`cache_${endpoint.split('/')[0]}`)) {
+                  localStorage.removeItem(key);
+                }
+              });
+            } catch (e) {
+              // Ignore localStorage errors
+            }
+          }
+        }
+
+        return data;
+      } catch (error) {
+        // Client error is thrown
+        if ((error as any).status && (error as any).status < 500) {
+          throw error;
+        }
+        
+        console.error(`API request failed for ${endpoint}:`, error);
+        
+        // For network errors, mark server as unavailable
+        if (error instanceof TypeError || (error as any).name === 'AbortError') {
+          isServerAvailable = false;
+          
+          // Schedule a server check
+          if (!serverCheckTimeout) {
+            serverCheckTimeout = setTimeout(() => {
+              serverCheckTimeout = null;
+              checkServerAvailability();
+            }, 30000);
+          }
+        }
+        
+        // Return fallback data
+        return getFallbackForEndpoint<T>(endpoint, businessId);
+      } finally {
+        // Remove from pending requests when done
+        pendingRequests.delete(cacheKey);
+      }
+    })();
+    
+    // Store for deduplication
+    pendingRequests.set(cacheKey, requestPromise);
+    
+    return requestPromise;
+  } catch (error) {
+    console.error(`Unexpected error in fetchAPI for ${endpoint}:`, error);
+    return getFallbackForEndpoint<T>(endpoint, businessId);
+  }
+}
+
+// Optimized business data retrieval with field selection
+export async function getBusinessData(businessId: string, fields?: string[]) {
+  const fieldsParam = fields ? `?_fields=${fields.join(',')}` : '';
+  return fetchAPI<{
+    business: Business;
+    users: BusinessUser[];
+    services: Service[];
+    appointments: Appointment[];
+    clients: Client[];
+    serviceCategories: ServiceCategory[];
+  }>(`business-data/${businessId}${fieldsParam}`, {}, false, businessId, CACHE_DURATION_LONG);
+}
+
+// Fast dashboard data for UI with minimal fields
+export async function getBusinessDashboard(businessId: string) {
+  return fetchAPI<{
+    id: string;
+    name: string;
+    stats: {
+      totalStaff: number;
+      totalServices: number;
+      totalClients: number;
+      todayAppointmentCount: number;
+      totalRevenue: number;
+    };
+    todayAppointments: Appointment[];
+  }>(`businesses/${businessId}/summary`, {}, false, businessId, CACHE_DURATION_SHORT);
+}
+
+// Get optimized appointment view with client and service details
+export async function getAppointmentsWithDetails(
+  businessId: string,
+  page: number = 1,
+  limit: number = 20
+) {
+  return fetchAPI<{
+    data: any[];
+    meta: {
+      totalCount: number;
+      page: number;
+      limit: number;
+      pageCount: number;
+    }
+  }>(`appointments-with-details?businessId=${businessId}&page=${page}&limit=${limit}`, 
+      {}, false, businessId, CACHE_DURATION_SHORT);
+}
+
+// Get appointment calendar data in optimized format
+export async function getAppointmentCalendar(
+  businessId: string,
+  startDate: string,
+  endDate: string
+) {
+  return fetchAPI<Record<string, Appointment[]>>(
+    `appointment-calendar?businessId=${businessId}&startDate=${startDate}&endDate=${endDate}`,
+    {}, false, businessId, CACHE_DURATION_SHORT
+  );
 }
 
 // Helper function for getting status details (color and text)
@@ -498,20 +764,65 @@ export const deleteService = (id: string) =>
 // Appointments
 export const getAppointments = () => fetchAPI<Appointment[]>('appointments');
 export const getAppointment = (id: string) => fetchAPI<Appointment>(`appointments/${id}`);
-export const createAppointment = (appointment: Omit<Appointment, 'id'>) => {
-  // Ensure businessId is set
-  const businessId = appointment.businessId || getBusinessId();
-  if (!businessId) throw new Error('No business ID found');
-  
-  return fetchAPI<Appointment>('appointments', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      ...appointment,
-      businessId
-    })
-  });
+
+// Optimized appointment scheduling
+export const scheduleAppointment = async (
+  appointment: Omit<Appointment, 'id' | 'status' | 'endTime'>
+): Promise<Appointment> => {
+  try {
+    // First, ensure we have a business ID
+    if (!appointment.businessId) {
+      appointment.businessId = getBusinessId();
+      
+      if (!appointment.businessId) {
+        throw new Error('No business ID found for scheduling appointment');
+      }
+    }
+    
+    // Use the optimized endpoint for scheduling
+    return await fetchAPI<Appointment>('schedule-appointment', {
+      method: 'POST',
+      body: JSON.stringify(appointment),
+    }, true); // Bypass cache to ensure fresh data
+  } catch (error) {
+    // Enhanced error handling with specific error messages
+    if ((error as any).status === 409) {
+      throw new Error('This time slot is already booked. Please select another time.');
+    }
+    
+    if ((error as any).status === 400) {
+      const errorData = (error as any).data || {};
+      throw new Error(errorData.error || 'Invalid appointment data');
+    }
+    
+    if ((error as any).status === 404) {
+      throw new Error('Service, employee, or client not found');
+    }
+    
+    console.error('Failed to schedule appointment:', error);
+    throw new Error('Failed to schedule appointment. Please try again later.');
+  }
 };
+
+// Create an appointment with fallback to the regular endpoint
+export const createAppointment = (appointment: Omit<Appointment, 'id'>) => {
+  try {
+    // Try the optimized scheduling endpoint first if appropriate
+    if (!appointment.endTime && appointment.serviceId && appointment.date && appointment.startTime) {
+      return scheduleAppointment(appointment as Omit<Appointment, 'id' | 'status' | 'endTime'>);
+    }
+    
+    // Fall back to the regular endpoint
+    return fetchAPI<Appointment>('appointments', {
+      method: 'POST',
+      body: JSON.stringify(appointment)
+    });
+  } catch (error) {
+    console.error('Error creating appointment:', error);
+    throw error;
+  }
+};
+
 export const updateAppointment = (id: string, appointment: Partial<Appointment>) => 
   fetchAPI<Appointment>(`appointments/${id}`, {
     method: 'PATCH',
@@ -556,206 +867,132 @@ export const deleteClient = (id: string) =>
 
 // Business-specific API functions
 export const getBusinessServices = async (businessId?: string): Promise<Service[]> => {
-  // Get the business ID
-  const bId = businessId || getBusinessId();
-  
-  console.log('[getBusinessServices] Starting getBusinessServices with businessId:', bId);
-  
-  if (!bId) {
-    console.error('[getBusinessServices] No business ID found');
-    
-    // Try to get the ID directly from localStorage and user data as fallback
-    if (typeof window !== 'undefined') {
-      const directId = localStorage.getItem('business_id');
-      const userData = JSON.parse(localStorage.getItem('currentUser') || '{}');
-      console.log('[getBusinessServices] Debug - directId:', directId);
-      console.log('[getBusinessServices] Debug - userData:', userData);
-      
-      if (userData.businessId) {
-        // Force refresh the business ID in localStorage
-        localStorage.setItem('business_id', userData.businessId.toString());
-        console.log('[getBusinessServices] Updated business_id in localStorage to:', userData.businessId);
-        return getBusinessServices(userData.businessId); // Retry with the correct ID
-      }
-    }
-    
-    throw new Error('No business ID found');
+  if (!businessId) {
+    businessId = getBusinessId();
   }
   
-  console.log(`[getBusinessServices] Fetching services for business ID: ${bId}`);
-  
-  try {
-    // Add cache-busting timestamp to completely bypass browser cache
-    const timestamp = Date.now();
-    
-    // Try first with the query parameter approach
-    const response = await fetch(`${API_URL}/services?businessId=${bId}&_=${timestamp}`, {
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch services: ${response.statusText}`);
-    }
-    
-    const services = await response.json();
-    
-    // Check if we got filtered results - if not, we'll do manual filtering
-    if (Array.isArray(services) && services.length > 0) {
-      console.log(`[getBusinessServices] Found ${services.length} services from query param filter`);
-      
-      // Double-check businessId just to be sure
-      const filteredServices = services.filter(service => 
-        service.businessId && service.businessId.toString() === bId.toString()
-      );
-      
-      if (filteredServices.length !== services.length) {
-        console.warn(`[getBusinessServices] Query filtering returned inconsistent results, using manual filter instead`);
-        return await getBusinessServicesManual(bId);
-      }
-      
-      console.log(`[getBusinessServices] Returning ${filteredServices.length} services:`, filteredServices);
-      return filteredServices;
-    } else {
-      console.log(`[getBusinessServices] No services found with query param, trying manual filtering`);
-      return await getBusinessServicesManual(bId);
-    }
-  } catch (error) {
-    console.error('[getBusinessServices] Error with query param approach:', error);
-    return await getBusinessServicesManual(bId);
+  if (!businessId) {
+    console.warn('getBusinessServices called without businessId');
+    return [];
   }
-};
-
-// Helper function to manually fetch and filter services
-const getBusinessServicesManual = async (businessId: string): Promise<Service[]> => {
-  console.log(`[getBusinessServicesManual] Manually fetching all services for businessId: ${businessId}`);
   
   try {
-    // Add cache-busting timestamp
-    const timestamp = Date.now();
-    
-    // Fetch all services with cache busting
-    const response = await fetch(`${API_URL}/services?_=${timestamp}`, {
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch services: ${response.statusText}`);
+    // Try to get comprehensive business data first (more efficient)
+    const businessData = await getBusinessData(businessId);
+    if (businessData?.services) {
+      return businessData.services;
     }
     
-    const allServices = await response.json();
-    console.log('[getBusinessServicesManual] All services:', allServices);
-    
-    if (!Array.isArray(allServices)) {
-      console.error('[getBusinessServicesManual] Invalid response format, expected array');
-      return [];
-    }
-    
-    // Manually filter services to match the business ID
-    const filteredServices = allServices.filter(service => 
-      service.businessId && service.businessId.toString() === businessId.toString()
-    );
-    
-    console.log(`[getBusinessServicesManual] Found ${filteredServices.length} services for business ID ${businessId}:`, filteredServices);
-    
-    return filteredServices;
+    // Fallback to direct service lookup
+    return await fetchAPI<Service[]>(`services?businessId=${businessId}`);
   } catch (error) {
-    console.error('[getBusinessServicesManual] Error fetching services:', error);
-    // Return empty array instead of throwing to prevent app crashes
+    console.error('Failed to fetch business services:', error);
     return [];
   }
 };
 
-// Create a service for the current business
-export async function createBusinessService(
-  serviceData: Omit<Service, 'id' | 'businessId'>
-): Promise<Service> {
-  // Get the current business ID
-  const businessId = getBusinessId();
-  
-  // If no business ID, we can't create a service
-  if (!businessId) {
-    throw new Error('No business found. Please create or select a business first.');
-  }
-  
-  // Add the business ID to the service data
-  const fullServiceData = {
-    ...serviceData,
-    businessId
-  };
-  
-  // Create the service using the API
-  const newService = await fetchAPI<Service>('/services', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(fullServiceData),
-  });
-  
-  return newService;
-}
-
+// Get business appointments with improved performance
 export const getBusinessAppointments = async (businessId?: string) => {
-  const bId = businessId || getBusinessId();
-  if (!bId) throw new Error('No business ID found');
+  if (!businessId) {
+    businessId = getBusinessId();
+  }
+  
+  if (!businessId) {
+    console.warn('getBusinessAppointments called without businessId');
+    return [];
+  }
   
   try {
-    // First try to get appointments with businessId filter
-    return await fetchAPI<Appointment[]>(`appointments?businessId=${bId}`);
-  } catch (error) {
-    console.error('Error fetching appointments with businessId, falling back:', error);
-    
-    try {
-      // Fallback to filtering manually
-      const appointments = await fetchAPI<Appointment[]>('appointments');
-      return appointments.filter(appointment => appointment.businessId === bId);
-    } catch (secondError) {
-      console.error('Error in fallback appointment fetching:', secondError);
-      return [];
+    // Try to get comprehensive business data first (more efficient)
+    const businessData = await getBusinessData(businessId);
+    if (businessData?.appointments) {
+      return businessData.appointments;
     }
+    
+    // Fallback to direct appointment lookup
+    return await fetchAPI<Appointment[]>(`appointments?businessId=${businessId}`);
+  } catch (error) {
+    console.error('Failed to fetch business appointments:', error);
+    return [];
   }
 };
 
+// Get business clients with improved performance
 export const getBusinessClients = async (businessId?: string) => {
-  const bId = businessId || getBusinessId();
-  if (!bId) throw new Error('No business ID found');
+  if (!businessId) {
+    businessId = getBusinessId();
+  }
   
-  return fetchAPI<Client[]>(`clients?businessId=${bId}`);
-};
-
-export const getBusinessStaff = async (businessId?: string) => {
-  const bId = businessId || getBusinessId();
-  if (!bId) throw new Error('No business ID found');
+  if (!businessId) {
+    console.warn('getBusinessClients called without businessId');
+    return [];
+  }
   
   try {
-    // First try with the business staff endpoint - include both staff and admin roles
-    return await fetchAPI<BusinessUser[]>(`users?businessId=${bId}`);
-  } catch (error) {
-    try {
-      console.error('Error fetching business staff, trying fallback:', error);
-      
-      // Fallback: Get all users and filter by businessId
-      const allUsers = await getUsers();
-      // Filter and cast to BusinessUser since we're filtering for business users
-      const businessUsers = allUsers.filter(user => 
-        // Check for properties that indicate a BusinessUser
-        'businessId' in user && 
-        user.businessId === bId
-      ) as BusinessUser[];
-      
-      return businessUsers;
-    } catch (secondError) {
-      console.error('Error fetching business staff with fallback:', secondError);
-      return []; // Return empty array instead of throwing
+    // Try to get comprehensive business data first (more efficient)
+    const businessData = await getBusinessData(businessId);
+    if (businessData?.clients) {
+      return businessData.clients;
     }
+    
+    // Fallback to direct client lookup
+    return await fetchAPI<Client[]>(`clients?businessId=${businessId}`);
+  } catch (error) {
+    console.error('Failed to fetch business clients:', error);
+    return [];
+  }
+};
+
+// Get business staff with improved performance
+export const getBusinessStaff = async (businessId?: string) => {
+  if (!businessId) {
+    businessId = getBusinessId();
+  }
+  
+  if (!businessId) {
+    console.warn('getBusinessStaff called without businessId');
+    return [];
+  }
+  
+  try {
+    // Try to get comprehensive business data first (more efficient)
+    const businessData = await getBusinessData(businessId);
+    if (businessData?.users) {
+      return businessData.users.filter(user => user.role === 'staff');
+    }
+    
+    // Fallback to direct staff lookup
+    return await fetchAPI<BusinessUser[]>(`users?businessId=${businessId}&role=staff`);
+  } catch (error) {
+    console.error('Failed to fetch business staff:', error);
+    return [];
+  }
+};
+
+// Get business service categories with improved performance
+export const getBusinessServiceCategories = async (businessId?: string) => {
+  if (!businessId) {
+    businessId = getBusinessId();
+  }
+  
+  if (!businessId) {
+    console.warn('getBusinessServiceCategories called without businessId');
+    return defaultCategories();
+  }
+  
+  try {
+    // Try to get comprehensive business data first (more efficient)
+    const businessData = await getBusinessData(businessId);
+    if (businessData?.serviceCategories) {
+      return businessData.serviceCategories;
+    }
+    
+    // Fallback to direct category lookup
+    const categories = await fetchAPI<ServiceCategory[]>(`serviceCategories?businessId=${businessId}`);
+    return categories.length > 0 ? categories : defaultCategories();
+  } catch (error) {
+    console.error('Failed to fetch service categories:', error);
+    return defaultCategories();
   }
 };
 
@@ -764,67 +1001,6 @@ export const getBusiness = (id: string) => fetchAPI<Business>(`businesses/${id}`
 export const getBusinessById = (id: string) => fetchAPI<Business>(`businesses/${id}`);
 
 // Service Categories API functions
-
-export const getBusinessServiceCategories = async () => {
-  try {
-    const businessId = getBusinessId();
-    
-    // If no business ID is available, return the hardcoded categories as fallback
-    if (!businessId) {
-      console.warn('No business ID found for fetching categories, using hardcoded data');
-      return defaultCategories();
-    }
-    
-    // Get categories from API
-    const response = await fetch(`${API_URL}/serviceCategories?businessId=${businessId}`);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch categories: ${response.statusText}`);
-    }
-    
-    const categories = await response.json();
-    
-    // If no categories found, return default ones
-    if (!categories || categories.length === 0) {
-      return defaultCategories();
-    }
-    
-    return categories;
-  } catch (error) {
-    console.error('Error fetching service categories:', error);
-    return defaultCategories();
-  }
-};
-
-// Default categories as fallback
-const defaultCategories = () => {
-  return [
-    {
-      id: '1',
-      name: 'Haircut',
-      description: 'Hair cutting services',
-      color: '#4f46e5',
-    },
-    {
-      id: '2',
-      name: 'Styling',
-      description: 'Hair styling services',
-      color: '#8b5cf6',
-    },
-    {
-      id: '3',
-      name: 'Color',
-      description: 'Hair coloring services',
-      color: '#ec4899',
-    },
-    {
-      id: '4',
-      name: 'Treatment',
-      description: 'Hair treatment services',
-      color: '#f59e0b',
-    }
-  ];
-};
 
 export const createServiceCategory = async (category: Omit<ServiceCategory, 'id' | 'businessId'>) => {
   try {
@@ -969,5 +1145,115 @@ export async function getClientAppointmentHistory(clientId: string): Promise<App
   }
 }
 
-// Initialize server availability check
-checkServerAvailability();
+// Default categories as fallback
+const defaultCategories = () => {
+  return [
+    {
+      id: '1',
+      name: 'Haircut',
+      description: 'Hair cutting services',
+      color: '#4f46e5',
+    },
+    {
+      id: '2',
+      name: 'Styling',
+      description: 'Hair styling services',
+      color: '#8b5cf6',
+    },
+    {
+      id: '3',
+      name: 'Color',
+      description: 'Hair coloring services',
+      color: '#ec4899',
+    },
+    {
+      id: '4',
+      name: 'Treatment',
+      description: 'Hair treatment services',
+      color: '#f59e0b',
+    }
+  ];
+};
+
+// Types for batch operations
+export type BatchOperation = {
+  type: 'create' | 'read' | 'update' | 'delete';
+  entity: string;
+  id?: string;
+  data?: any;
+};
+
+export type BatchResult = {
+  results: Array<{
+    success?: boolean;
+    error?: string;
+    entity?: string;
+    id?: string;
+    data?: any;
+    operation?: BatchOperation;
+  }>;
+};
+
+// Batch operations for better performance
+export const batchOperations = async (operations: BatchOperation[]): Promise<BatchResult> => {
+  try {
+    return await fetchAPI<BatchResult>('batch', {
+      method: 'POST',
+      body: JSON.stringify({ operations }),
+    }, true); // Bypass cache to ensure fresh data
+  } catch (error) {
+    console.error('Batch operations failed:', error);
+    throw new Error('Failed to perform batch operations');
+  }
+};
+
+// Helper for creating multiple entities in one request
+export const createBatch = async <T>(
+  entity: string, 
+  items: Omit<T, 'id'>[],
+  businessId?: string
+): Promise<T[]> => {
+  // Ensure business ID if applicable
+  const bId = businessId || getBusinessId();
+  
+  // Prepare operations
+  const operations: BatchOperation[] = items.map(item => ({
+    type: 'create',
+    entity,
+    data: {
+      ...item,
+      ...(bId ? { businessId: bId } : {})
+    }
+  }));
+  
+  try {
+    // Perform batch operation
+    const result = await batchOperations(operations);
+    
+    // Extract created items
+    const createdItems = result.results
+      .filter(r => r.success && r.entity === entity)
+      .map(r => r.data);
+    
+    return createdItems as T[];
+  } catch (error) {
+    console.error(`Failed to create batch of ${entity}:`, error);
+    throw new Error(`Failed to create ${entity} items`);
+  }
+};
+
+// Example: Create multiple clients in one request
+export const createClients = (clients: Omit<Client, 'id' | 'totalVisits'>[]): Promise<Client[]> => {
+  return createBatch<Client>('clients', clients.map(client => ({
+    ...client,
+    totalVisits: 0
+  })));
+};
+
+// Example: Create multiple appointments in one request
+export const createAppointmentBatch = (appointments: Omit<Appointment, 'id' | 'status'>[]): Promise<Appointment[]> => {
+  return createBatch<Appointment>('appointments', appointments.map(appointment => ({
+    ...appointment,
+    status: 'Pending' as AppointmentStatus
+  })));
+};
