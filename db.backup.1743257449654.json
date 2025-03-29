@@ -528,14 +528,14 @@
   "services": [
     {
       "name": "Manicure",
-      "description": "Manicure Lorem",
+      "description": "Manicure",
       "duration": 60,
       "price": 2000,
       "category": "Manicure",
       "imageUrl": "/images/services/manicure.jpg",
       "businessId": "1742230321916",
       "id": "1742230995581",
-      "_timestamp": 1743257550716
+      "_timestamp": 1742298794688
     },
     {
       "name": "Haicut",
@@ -663,14 +663,6 @@
       "businessId": "1742230321916",
       "_timestamp": 1743257449653,
       "id": "1743257449654922"
-    },
-    {
-      "name": "Styling",
-      "description": "Lorem ipsum Styling",
-      "color": "#4f46e5",
-      "businessId": "1742230321916",
-      "_timestamp": 1743257607143,
-      "id": "1743257607143652"
     }
   ]
 }

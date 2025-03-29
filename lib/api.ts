@@ -650,7 +650,7 @@ export async function getAppointmentCalendar(
 }
 
 // Helper function for getting status details (color and text)
-export function getStatusDetails(status: AppointmentStatus) {
+export const getStatusDetails = (status: AppointmentStatus) => {
   switch (status) {
     case 'Pending':
       return { color: 'bg-yellow-500', text: 'Pending' };
@@ -669,7 +669,7 @@ export function getStatusDetails(status: AppointmentStatus) {
 const getAuthToken = () => localStorage.getItem('auth_token');
 
 // Function to get business ID
-const getBusinessId = () => {
+export const getBusinessId = () => {
   try {
     // Check if we're in a browser environment before accessing localStorage
     if (typeof window === 'undefined') return null;
@@ -697,7 +697,7 @@ const getBusinessId = () => {
     console.error('Error getting business ID:', error);
     return null;
   }
-};
+}
 
 // Users
 export const getUsers = () => fetchAPI<User[]>('users');
@@ -726,6 +726,27 @@ export const createService = (service: Omit<Service, 'id'>) =>
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(service)
   });
+
+// Create a business service with the business ID automatically added
+export const createBusinessService = async (service: Omit<Service, 'id' | 'businessId'>): Promise<Service> => {
+  try {
+    const businessId = getBusinessId();
+    
+    if (!businessId) {
+      throw new Error('No business ID found for creating service');
+    }
+    
+    const serviceData = {
+      ...service,
+      businessId
+    };
+    
+    return await createService(serviceData);
+  } catch (error) {
+    console.error('Failed to create business service:', error);
+    throw new Error(`Failed to create service: ${error instanceof Error ? error.message : String(error)}`);
+  }
+};
   
 // Update service
 export async function updateService(
@@ -734,7 +755,7 @@ export async function updateService(
 ): Promise<Service> {
   try {
     // First try to get the current service state
-    const currentService = await fetchAPI<Service>(`/services/${id}?_=${Date.now()}`);
+    const currentService = await fetchAPI<Service>(`services/${id}?_=${Date.now()}`);
     
     // Merge the current data with the update data
     const updatedData = {
@@ -743,7 +764,7 @@ export async function updateService(
     };
     
     // Then update it
-    const updatedService = await fetchAPI<Service>(`/services/${id}`, {
+    const updatedService = await fetchAPI<Service>(`services/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
