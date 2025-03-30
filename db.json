@@ -530,7 +530,7 @@
   "services": [
     {
       "name": "Manicure",
-      "description": "Manicure Lorem ipsum",
+      "description": "Manicure Lorem ipsum 123",
       "duration": 60,
       "price": 2000,
       "category": "Manicure",
