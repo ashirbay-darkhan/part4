@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { Menu, Search, Bell, X, User, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,8 @@ import { useAuth } from '@/lib/auth/authContext';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
-export function Header() {
+// Use memo to prevent unnecessary re-renders
+export const Header = memo(function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -220,4 +221,4 @@ export function Header() {
       </div>
     </header>
   );
-}
+});

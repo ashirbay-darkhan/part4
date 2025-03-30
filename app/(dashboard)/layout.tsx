@@ -1,6 +1,12 @@
 import { ReactNode } from 'react';
+import dynamic from 'next/dynamic';
+
+// Import Sidebar normally since it's essential for navigation
 import { Sidebar } from '@/components/layout/sidebar';
-import { Header } from '@/components/layout/header';
+// Dynamically import the Header which is less essential for initial render
+const Header = dynamic(() => import('@/components/layout/header').then(mod => ({ default: mod.Header })), {
+  ssr: true
+});
 
 export default function DashboardLayout({
   children,

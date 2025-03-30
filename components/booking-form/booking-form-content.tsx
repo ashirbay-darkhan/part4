@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Copy, Share2, ExternalLink, Upload, ImageIcon } from 'lucide-react';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/ui/optimized-image';
 import { toast } from 'sonner';
 import { updateBusiness } from '@/lib/api-client';
 
@@ -212,14 +212,12 @@ export function BookingFormContent() {
             <div className="border rounded-md p-4 flex items-center justify-center bg-muted/20">
               {business?.imageUrl ? (
                 <div className="relative w-full aspect-video">
-                  <img
+                  <OptimizedImage
                     src={business.imageUrl}
                     alt={user?.businessName || 'Business'}
-                    className="w-full h-full object-cover rounded-md"
-                    onError={() => {
-                      console.log('Image failed to load');
-                      // We don't need to reset the image state anymore since it comes from SWR
-                    }}
+                    width={1200}
+                    height={630}
+                    className="w-full h-full rounded-md"
                   />
                 </div>
               ) : (

@@ -15,7 +15,12 @@ const nextConfig: NextConfig = {
     ],
     domains: ['localhost'],
     minimumCacheTTL: 60,
+    formats: ['image/webp'],
     unoptimized: process.env.NODE_ENV === 'development'
+  },
+  experimental: {
+    optimizeCss: true,
+    scrollRestoration: true,
   }
 };
 
