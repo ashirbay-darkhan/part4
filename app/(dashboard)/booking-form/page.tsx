@@ -1,18 +1,44 @@
-'use client';
-
-import { Suspense } from 'react';
-import { BookingFormContent } from '@/components/booking-form/booking-form-content';
 import { Skeleton } from '@/components/ui/skeleton';
+import BookingFormClientWrapper from './client-wrapper';
 
-// Simple loading component
+// Enhanced loading component that better matches the BookingFormContent structure
 function Loading() {
   return (
-    <div className="space-y-4 w-full">
-      <Skeleton className="h-8 w-48" />
-      <Skeleton className="h-6 w-full max-w-lg" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-32 w-full" />
+    <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+      {/* Booking Link Card Skeleton */}
+      <div className="border rounded-lg shadow-md p-6 space-y-4">
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-48" />
+          <Skeleton className="h-4 w-full max-w-md" />
+        </div>
+        <div className="py-4 space-y-4">
+          <div className="flex space-x-2">
+            <Skeleton className="h-10 flex-1" />
+            <Skeleton className="h-10 w-10" />
+            <Skeleton className="h-10 w-10" />
+          </div>
+          <Skeleton className="h-10 w-full mt-4" />
+          <div className="flex justify-between items-center mt-2">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-8 w-24" />
+          </div>
+        </div>
+      </div>
+      
+      {/* Business Image Card Skeleton */}
+      <div className="border rounded-lg shadow-md p-6 space-y-4">
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-48" />
+          <Skeleton className="h-4 w-full max-w-md" />
+        </div>
+        <div className="space-y-4">
+          <Skeleton className="h-48 w-full rounded-md" /> {/* Image placeholder */}
+          <div className="space-y-1">
+            <Skeleton className="h-3 w-64" />
+            <Skeleton className="h-3 w-36" />
+          </div>
+          <Skeleton className="h-10 w-full mt-2" /> {/* Upload button */}
+        </div>
       </div>
     </div>
   );
@@ -28,9 +54,7 @@ export default function BookingFormPage() {
         </p>
       </div>
       
-      <Suspense fallback={<Loading />}>
-        <BookingFormContent />
-      </Suspense>
+      <BookingFormClientWrapper fallback={<Loading />} />
     </div>
   );
 } 

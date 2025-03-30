@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Copy, Share2, ExternalLink, Upload, ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
-import { updateBusiness } from '@/lib/api';
+import { updateBusiness } from '@/lib/api-client';
 
 export function BookingFormContent() {
   const { user } = useAuth();
@@ -258,4 +258,7 @@ export function BookingFormContent() {
       </Card>
     </div>
   );
-} 
+}
+
+// Add a default export to make dynamic imports easier
+export default { BookingFormContent }; 

@@ -541,7 +541,7 @@
     },
     {
       "name": "Haicut",
-      "description": "Haicu",
+      "description": "Haicut Lorem ipsum",
       "duration": 60,
       "price": 2000,
       "category": "Manicure",
@@ -635,6 +635,19 @@
       "price": 2000,
       "businessId": "1742230321916",
       "id": 4
+    },
+    {
+      "clientId": "1743336541308",
+      "employeeId": "1742244079841",
+      "serviceId": "1742231297430",
+      "date": "2025-03-31",
+      "startTime": "15:00",
+      "endTime": "16:00",
+      "duration": 60,
+      "status": "Pending",
+      "price": 2000,
+      "businessId": "1742230321916",
+      "id": 5
     }
   ],
   "clients": [
@@ -665,6 +678,14 @@
     {
       "id": "1743336125202",
       "name": "asdasd",
+      "phone": "123123123",
+      "email": "",
+      "totalVisits": 0,
+      "businessId": "1742230321916"
+    },
+    {
+      "id": "1743336541308",
+      "name": "qwqwe",
       "phone": "123123123",
       "email": "",
       "totalVisits": 0,
@@ -701,7 +722,7 @@
       "id": "1742233214686"
     },
     {
-      "name": "Styling",
+      "name": "Styling category",
       "description": "Styling",
       "color": "#4f46e5",
       "businessId": "1742230321916",

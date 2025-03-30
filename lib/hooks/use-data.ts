@@ -6,7 +6,7 @@ import {
   getBusinessClients,
   getBusinessStaff,
   getAppointment
-} from '@/lib/api';
+} from '@/lib/api-client';
 import { Business, Service, Appointment, Client, BusinessUser } from '@/types';
 
 // Generic fetcher function
