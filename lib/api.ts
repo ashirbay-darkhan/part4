@@ -763,6 +763,16 @@ export const getBusinessStaff = async (businessId?: string) => {
 export const getBusiness = (id: string) => fetchAPI<Business>(`businesses/${id}`);
 export const getBusinessById = (id: string) => fetchAPI<Business>(`businesses/${id}`);
 
+export const updateBusiness = (id: string, data: Partial<Business>) => 
+  fetchAPI<Business>(`businesses/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getAuthToken()}`,
+    },
+    body: JSON.stringify(data),
+  });
+
 // Service Categories API functions
 
 export const getBusinessServiceCategories = async () => {

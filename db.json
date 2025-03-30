@@ -516,13 +516,15 @@
       "id": "1742230321916",
       "name": "Pied piper",
       "ownerId": "1742230321916",
-      "email": "richard@gmail.com"
+      "email": "richard@gmail.com",
+      "imageUrl": "/images/businesses/1742230321916_1743331423194_premium_photo_1661290481306_4841edd49719.jpg"
     },
     {
       "id": "1742419128863",
       "name": "Nike",
       "ownerId": "1742419128863",
-      "email": "darkhan.ashirbay01@gmail.com"
+      "email": "darkhan.ashirbay01@gmail.com",
+      "imageUrl": ""
     }
   ],
   "services": [

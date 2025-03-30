@@ -15,7 +15,8 @@ import {
   ChevronLeft,
   ChevronRight,
   UserPlus,
-  LayoutGrid
+  LayoutGrid,
+  CalendarClock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/authContext';
@@ -393,6 +394,13 @@ export function Sidebar() {
               icon={<LineChart className="h-6 w-6" />}
               label="Analytics"
               isActive={pathname.includes('/analytics')}
+            />
+
+            <SidebarItem
+              href="/booking-form"
+              icon={<CalendarClock className="h-6 w-6" />}
+              label="Booking Form"
+              isActive={pathname.includes('/booking-form')}
             />
             
             {/* Removed Settings link to save space */}

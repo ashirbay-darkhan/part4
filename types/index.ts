@@ -54,6 +54,7 @@ export type Business = {
   address?: string;
   logo?: string;
   website?: string;
+  imageUrl?: string; // Image URL for business profile
   createdAt: string;
   updatedAt: string;
 };
