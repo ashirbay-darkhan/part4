@@ -390,13 +390,6 @@ export function Sidebar() {
             />
 
             <SidebarItem
-              href="/analytics"
-              icon={<LineChart className="h-6 w-6" />}
-              label="Analytics"
-              isActive={pathname.includes('/analytics')}
-            />
-
-            <SidebarItem
               href="/booking-form"
               icon={<CalendarClock className="h-6 w-6" />}
               label="Booking Form"

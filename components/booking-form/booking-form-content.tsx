@@ -106,9 +106,13 @@ export function BookingFormContent() {
       formData.append('businessId', user?.businessId || '');
       formData.append('fileName', fileName);
       
-      // Simulate file upload - in a real app, this would be an API call
-      // Here we're just setting a path as if the file was uploaded
-      const imageUrl = `/images/businesses/${fileName}`;
+      // In a real app, you would upload the file here
+      // For now, we're just pretending it's uploaded to a public directory
+      
+      // Generate image URL - since we're simulating, we'll just use a placeholder
+      // This should be a URL that would actually work in a real implementation
+      // For demo purposes, we'll use an existing image from your public folder
+      const imageUrl = `/images/services/haircut.jpg`;
       
       // Update business with new image URL
       if (user?.businessId) {
@@ -218,12 +222,10 @@ export function BookingFormContent() {
             <div className="border rounded-md p-4 flex items-center justify-center bg-muted/20">
               {businessImage ? (
                 <div className="relative w-full aspect-video">
-                  <Image
+                  <img
                     src={businessImage}
                     alt={user?.businessName || 'Business'}
-                    fill
-                    className="object-cover rounded-md"
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="w-full h-full object-cover rounded-md"
                     onError={() => {
                       console.log('Image failed to load, resetting business image');
                       setBusinessImage('');

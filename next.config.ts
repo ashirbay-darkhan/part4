@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
         pathname: '**',
       },
     ],
+    domains: ['localhost'],
+    minimumCacheTTL: 60,
+    unoptimized: process.env.NODE_ENV === 'development'
   }
 };
 
