@@ -528,7 +528,7 @@
   "services": [
     {
       "name": "Manicure",
-      "description": "Manicure",
+      "description": "Manicure Lorem ipsum",
       "duration": 60,
       "price": 2000,
       "category": "Manicure",
@@ -607,6 +607,19 @@
       "price": 2000,
       "businessId": "1742230321916",
       "id": 2
+    },
+    {
+      "clientId": "1743328017007",
+      "employeeId": "1742244079841",
+      "serviceId": "1742230995581",
+      "date": "2025-03-31",
+      "startTime": "17:00",
+      "endTime": "18:00",
+      "duration": 60,
+      "status": "Pending",
+      "price": 2000,
+      "businessId": "1742230321916",
+      "id": 3
     }
   ],
   "clients": [
@@ -622,6 +635,14 @@
       "id": "1743251856153",
       "name": "Neo",
       "phone": "+77024458848",
+      "email": "",
+      "totalVisits": 0,
+      "businessId": "1742230321916"
+    },
+    {
+      "id": "1743328017007",
+      "name": "asdad",
+      "phone": "123123132",
       "email": "",
       "totalVisits": 0,
       "businessId": "1742230321916"
@@ -655,6 +676,13 @@
       "color": "#cbe548",
       "businessId": "1742230321916",
       "id": "1742233214686"
+    },
+    {
+      "name": "Styling",
+      "description": "Styling",
+      "color": "#4f46e5",
+      "businessId": "1742230321916",
+      "id": "1743328191897"
     }
   ]
 }

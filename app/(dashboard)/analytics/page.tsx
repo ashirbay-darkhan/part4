@@ -120,7 +120,7 @@ export default function AnalyticsPage() {
   const [statusFilter, setStatusFilter] = useState<AppointmentStatus | 'all'>('all');
   
   // Use our custom localStorage hook for the active tab
-  const [activeTab, setActiveTab] = useLocalStorage<string>('analytics_active_tab', 'overview');
+  const [activeTab, setActiveTab] = useLocalStorage<string>('analytics_active_tab', 'appointments');
   
   // Handle tab change
   const handleTabChange = (value: string) => {
@@ -507,8 +507,8 @@ export default function AnalyticsPage() {
       >
         <div className="flex items-center justify-between">
           <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
           </TabsList>
           
           <div className="flex items-center gap-2">
