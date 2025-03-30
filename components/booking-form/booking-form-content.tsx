@@ -2,19 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/authContext';
+import { useBusiness } from '@/lib/hooks/use-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Copy, Share2, ExternalLink, Upload, ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
-import { updateBusiness, getBusiness } from '@/lib/api';
+import { updateBusiness } from '@/lib/api';
 
 export function BookingFormContent() {
   const { user } = useAuth();
+  const { business, isLoading, mutate } = useBusiness(user?.businessId);
   const [bookingLink, setBookingLink] = useState('');
   const [copied, setCopied] = useState(false);
-  const [businessImage, setBusinessImage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [showShareButton, setShowShareButton] = useState(false);
 
@@ -26,18 +27,6 @@ export function BookingFormContent() {
       // Generate booking link
       const baseUrl = window.location.origin;
       setBookingLink(`${baseUrl}/book/${user.businessId}`);
-      
-      // Load business image if available
-      if (user.businessId) {
-        // Use the getBusiness function directly instead of fetching an API endpoint
-        getBusiness(user.businessId)
-          .then(business => {
-            if (business?.imageUrl) {
-              setBusinessImage(business.imageUrl);
-            }
-          })
-          .catch(err => console.error('Error loading business image:', err));
-      }
     }
   }, [user]);
 
@@ -120,7 +109,8 @@ export function BookingFormContent() {
           imageUrl 
         });
         
-        setBusinessImage(imageUrl);
+        // After successful update, update the SWR cache
+        mutate();
         toast.success('Business image updated successfully');
       }
     } catch (error) {
@@ -220,15 +210,15 @@ export function BookingFormContent() {
         <CardContent>
           <div className="space-y-4">
             <div className="border rounded-md p-4 flex items-center justify-center bg-muted/20">
-              {businessImage ? (
+              {business?.imageUrl ? (
                 <div className="relative w-full aspect-video">
                   <img
-                    src={businessImage}
+                    src={business.imageUrl}
                     alt={user?.businessName || 'Business'}
                     className="w-full h-full object-cover rounded-md"
                     onError={() => {
-                      console.log('Image failed to load, resetting business image');
-                      setBusinessImage('');
+                      console.log('Image failed to load');
+                      // We don't need to reset the image state anymore since it comes from SWR
                     }}
                   />
                 </div>
@@ -251,17 +241,17 @@ export function BookingFormContent() {
             <Button
               variant="outline"
               className="w-full relative overflow-hidden"
-              disabled={isUploading}
+              disabled={isUploading || isLoading}
             >
               <input
                 type="file"
                 accept="image/*"
                 className="absolute inset-0 opacity-0 cursor-pointer"
                 onChange={handleImageUpload}
-                disabled={isUploading}
+                disabled={isUploading || isLoading}
               />
               <Upload className="h-4 w-4 mr-2" />
-              {isUploading ? 'Uploading...' : businessImage ? 'Change Image' : 'Upload Image'}
+              {isUploading ? 'Uploading...' : business?.imageUrl ? 'Change Image' : 'Upload Image'}
             </Button>
           </div>
         </CardFooter>

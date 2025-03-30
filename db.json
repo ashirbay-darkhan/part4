@@ -622,6 +622,19 @@
       "price": 2000,
       "businessId": "1742230321916",
       "id": 3
+    },
+    {
+      "clientId": "1743336125202",
+      "employeeId": "1742244079841",
+      "serviceId": "1742230995581",
+      "date": "2025-03-31",
+      "startTime": "16:00",
+      "endTime": "17:00",
+      "duration": 60,
+      "status": "Pending",
+      "price": 2000,
+      "businessId": "1742230321916",
+      "id": 4
     }
   ],
   "clients": [
@@ -645,6 +658,14 @@
       "id": "1743328017007",
       "name": "asdad",
       "phone": "123123132",
+      "email": "",
+      "totalVisits": 0,
+      "businessId": "1742230321916"
+    },
+    {
+      "id": "1743336125202",
+      "name": "asdasd",
+      "phone": "123123123",
       "email": "",
       "totalVisits": 0,
       "businessId": "1742230321916"
