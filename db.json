@@ -595,7 +595,8 @@
       "status": "Pending",
       "price": 2000,
       "businessId": "1742230321916",
-      "id": 1
+      "id": "1",
+      "comment": ""
     },
     {
       "clientId": "1743251856153",
@@ -618,10 +619,10 @@
       "startTime": "17:00",
       "endTime": "18:00",
       "duration": 60,
-      "status": "Pending",
+      "status": "Confirmed",
       "price": 2000,
       "businessId": "1742230321916",
-      "id": 3
+      "id": "3"
     },
     {
       "clientId": "1743336125202",

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function CalendarPage() {
   return (
-    <div className="fixed top-16 bottom-0 left-52 right-0 bg-white z-10">
+    <div className="h-full overflow-hidden bg-white">
       <CalendarClient />
     </div>
   );

@@ -55,7 +55,7 @@ export default function CalendarClient() {
   };
 
   return (
-    <>
+    <div className="h-full">
       {view === 'week' ? (
         <CalendarView 
           onTodayClick={handleShowTodayView} 
@@ -67,6 +67,6 @@ export default function CalendarClient() {
           selectedDate={selectedDate}
         />
       )}
-    </>
+    </div>
   );
-} 
+}
