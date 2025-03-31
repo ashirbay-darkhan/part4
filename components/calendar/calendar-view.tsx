@@ -54,11 +54,11 @@ export function CalendarView({ onTodayClick, selectedDate }: CalendarViewProps) 
     return Array.from({ length: 7 }).map((_, i) => addDays(start, i));
   }, [currentDate]);
   
-  // Get working hours
+  // Get working hours - expanded to 8:00-22:00
   const workingHours = useMemo(() => {
     return {
-      start: 9, // Default start at 9:00
-      end: 18, // Default end at 18:00
+      start: 8, // Start at 8:00
+      end: 22, // End at 22:00
     };
   }, []);
 
@@ -71,11 +71,13 @@ export function CalendarView({ onTodayClick, selectedDate }: CalendarViewProps) 
         time: `${hour.toString().padStart(2, '0')}:00`,
         isHour: true
       });
-      slots.push({
-        hour,
-        time: `${hour.toString().padStart(2, '0')}:30`,
-        isHour: false
-      });
+      if (hour < workingHours.end) { // Don't add the :30 slot for the last hour
+        slots.push({
+          hour,
+          time: `${hour.toString().padStart(2, '0')}:30`,
+          isHour: false
+        });
+      }
     }
     return slots;
   }, [workingHours]);
@@ -288,7 +290,7 @@ export function CalendarView({ onTodayClick, selectedDate }: CalendarViewProps) 
             disabled={isLoading || staffMembers.length === 0}
           >
             <SelectTrigger className="w-[180px] bg-white border-gray-300">
-              <SelectValue placeholder="Select staff member" />
+              <SelectValue placeholder="All Staff" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Staff</SelectItem>
@@ -391,11 +393,10 @@ export function CalendarView({ onTodayClick, selectedDate }: CalendarViewProps) 
                     return (
                       <div
                         key={appointment.id}
-                        className={`absolute left-1 right-1 bg-white border rounded-md shadow-sm cursor-pointer hover:shadow-md transition-shadow border-l-4 ${getStatusColor(appointment.status)}`}
+                        className={`absolute left-1 right-1 bg-white border rounded-sm border-l-4 ${getStatusColor(appointment.status)} shadow-sm hover:shadow-md transition-shadow cursor-pointer z-10`}
                         style={{
                           top: `${top}px`,
                           height: `${height}px`,
-                          zIndex: 5,
                         }}
                         onClick={() => handleOpenAppointment(appointment)}
                       >

@@ -38,11 +38,11 @@ export function TodayView({ onBackToWeekView, selectedDate }: TodayViewProps) {
     window.dispatchEvent(new Event('popstate'));
   };
 
-  // Get working hours for all staff
+  // Get working hours for all staff - expanded to 8:00-22:00
   const workingHours = useMemo(() => {
     return {
-      start: 9, // Default start at 9:00
-      end: 18, // Default end at 18:00
+      start: 8, // Start at 8:00
+      end: 22, // End at 22:00
     };
   }, []);
 
@@ -55,11 +55,13 @@ export function TodayView({ onBackToWeekView, selectedDate }: TodayViewProps) {
         time: `${hour.toString().padStart(2, '0')}:00`,
         isHour: true
       });
-      slots.push({
-        hour,
-        time: `${hour.toString().padStart(2, '0')}:30`,
-        isHour: false
-      });
+      if (hour < workingHours.end) { // Don't add the :30 slot for the last hour
+        slots.push({
+          hour,
+          time: `${hour.toString().padStart(2, '0')}:30`,
+          isHour: false
+        });
+      }
     }
     return slots;
   }, [workingHours]);
@@ -216,12 +218,12 @@ export function TodayView({ onBackToWeekView, selectedDate }: TodayViewProps) {
         ) : (
           <div className="flex">
             {/* Time column - fixed on the left */}
-            <div className="sticky left-0 bg-white z-10 border-r">
+            <div className="sticky left-0 bg-white z-10 border-r min-w-[60px]">
               <div className="h-16 border-b"></div> {/* Empty space for staff headers */}
               {timeSlots.map((slot, index) => (
                 <div key={`time-${index}`} className="h-8 flex items-center justify-end pr-2">
                   {slot.isHour ? (
-                    <div className="flex items-end">
+                    <div className="flex items-baseline">
                       <span className="text-sm font-medium text-gray-700">{slot.hour}</span>
                       <span className="text-xs text-gray-400 ml-0.5">00</span>
                     </div>
@@ -235,14 +237,18 @@ export function TodayView({ onBackToWeekView, selectedDate }: TodayViewProps) {
             {/* Staff columns */}
             <div className="flex flex-1 overflow-x-auto">
               {staffMembers.map((staff) => (
-                <div key={staff.id} className="min-w-[250px] border-r flex-1">
+                <div key={staff.id} className="min-w-[200px] border-r flex-1">
                   {/* Staff header */}
                   <div className="h-16 p-3 border-b flex flex-col items-center justify-center bg-gray-50">
-                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mb-1">
-                      {staff.name?.charAt(0) || <User className="h-4 w-4 text-gray-500" />}
+                    <div className="text-center font-medium">
+                      <div className="text-xs text-gray-500 mb-1">
+                        {staff.name?.charAt(0) || 'S'}
+                      </div>
+                      <div>{staff.name || 'Staff'}</div>
+                      <div className="text-xs text-gray-500">
+                        {staff.role === 'staff' ? 'Staff' : staff.role || 'Staff'}
+                      </div>
                     </div>
-                    <div className="font-medium text-sm">{staff.name}</div>
-                    <div className="text-xs text-gray-500">{staff.role === 'staff' ? 'Staff' : staff.role || 'Staff'}</div>
                   </div>
                   
                   {/* Time slots for this staff */}
@@ -256,7 +262,7 @@ export function TodayView({ onBackToWeekView, selectedDate }: TodayViewProps) {
                         <div key={`${staff.id}-${slot.time}`} className="h-8 border-b relative">
                           {appointment && (
                             <div 
-                              className={`absolute left-1 right-1 bg-white border rounded-md border-l-4 ${getStatusColor(appointment.status)} shadow-sm hover:shadow-md transition-shadow cursor-pointer z-10`}
+                              className={`absolute left-1 right-1 bg-white border rounded-sm border-l-4 ${getStatusColor(appointment.status)} shadow-sm hover:shadow-md transition-shadow cursor-pointer z-10`}
                               style={{
                                 height: `${calculateAppointmentHeight(appointment)}px`,
                               }}
